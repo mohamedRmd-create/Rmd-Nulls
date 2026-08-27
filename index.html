@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rmd Null</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F3FF; --surface:#FFFFFF; --ink:#241748; --ink-soft:#6C63A6;
+    --primary:#7C4DFF; --primary-deep:#5B32D6; --yellow:#FFC93C; --pink:#FF6F9C;
+    --teal:#2FD3A6; --border:#E7E0FF; --shadow:0 10px 30px rgba(124,77,255,.10);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Cairo', sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #EFE9FF 0%, transparent 40%),
+      radial-gradient(circle at 90% 0%, #FFF2D9 0%, transparent 35%),
+      var(--bg);
+    color:var(--ink); min-height:100vh; overflow-x:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Lalezar','Cairo',sans-serif; letter-spacing:.5px;}
+  .hex{ clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+  input[type="checkbox"].hidden-toggle, input[type="radio"].hidden-toggle{
+    position:absolute; opacity:0; width:0; height:0; pointer-events:none;
+  }
+
+  /* ===== LOGIN ===== */
+  #login-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; padding:24px; }
+  .hex-bg{position:absolute; inset:0; overflow:hidden; z-index:0; opacity:.5;}
+  .hex-bg span{
+    position:absolute; width:70px; height:80px; background:var(--surface);
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    border:2px solid var(--border); animation: float 7s ease-in-out infinite;
+  }
+  @keyframes float{ 0%,100%{transform:translateY(0) rotate(0deg);} 50%{transform:translateY(-18px) rotate(8deg);} }
+  .login-card{
+    position:relative; z-index:1; width:100%; max-width:400px; background:var(--surface);
+    border:1px solid var(--border); border-radius:28px; padding:38px 32px; box-shadow:var(--shadow);
+    text-align:center; animation: pop .5s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes pop{ from{opacity:0; transform:scale(.9) translateY(20px);} to{opacity:1; transform:scale(1) translateY(0);} }
+  .brand-mark{
+    width:78px; height:88px; margin:0 auto 14px; background:linear-gradient(145deg,var(--primary),var(--primary-deep));
+    display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Lalezar'; font-size:30px;
+    box-shadow:0 8px 18px rgba(91,50,214,.35);
+  }
+  .login-card h1{font-size:34px; color:var(--primary-deep);}
+  .login-card p{color:var(--ink-soft); font-size:13.5px; margin-top:6px; margin-bottom:24px; line-height:1.6;}
+  .field{ text-align:right; margin-bottom:14px; }
+  .field label{ font-size:12px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:6px;}
+  .field input{
+    width:100%; padding:13px 16px; border-radius:14px; border:2px solid var(--border);
+    background:#FBFAFF; font-family:'Cairo'; font-size:14px; outline:none; transition:.2s;
+  }
+  .field input:focus{ border-color:var(--primary); background:#fff; }
+  .btn-primary{
+    display:block; width:100%; padding:14px; border:none; border-radius:14px; cursor:pointer;
+    background:linear-gradient(145deg,var(--yellow),#FFB300); color:#241748; font-family:'Cairo'; font-weight:800;
+    font-size:15px; margin-top:8px; transition:.15s; box-shadow:0 6px 16px rgba(255,201,60,.45); text-align:center;
+  }
+  .btn-primary:hover{ transform:translateY(-2px); }
+  .btn-primary:disabled{ opacity:.6; cursor:wait; transform:none; }
+  .login-msg{ margin-top:14px; font-size:12.5px; font-weight:700; min-height:16px; }
+  .login-msg.err{ color:#D6336C; }
+  .login-msg.ok{ color:#149E77; }
+  .login-card p{ text-align:right; }
+  .otp-resend{ margin-top:14px; font-size:12.5px; color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center; }
+  .otp-resend .muted-link{ color:var(--primary-deep); font-weight:800; cursor:pointer; }
+  .otp-resend .muted-link.disabled{ color:#B6ACD9; cursor:not-allowed; pointer-events:none; }
+
+  /* ===== APP SHELL ===== */
+  #app{ display:none; min-height:100vh; position:relative; }
+  #authToggle:checked ~ #login-screen{ display:none; }
+  #authToggle:checked ~ #app{ display:flex; }
+
+  .sidebar{ width:230px; background:var(--surface); border-left:1px solid var(--border); padding:22px 16px; display:flex; flex-direction:column; gap:6px; }
+  .sb-brand{ display:flex; align-items:center; gap:10px; padding:6px 8px 22px; }
+  .sb-brand .mini-hex{ width:36px; height:40px; background:linear-gradient(145deg,var(--primary),var(--primary-deep)); display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Lalezar'; font-size:16px; }
+  .sb-brand h1{ font-size:20px; color:var(--primary-deep); }
+  .nav-item{
+    display:flex; align-items:center; gap:10px; padding:12px 14px; border-radius:12px;
+    color:var(--ink-soft); font-weight:700; font-size:14px; cursor:pointer; transition:.15s;
+    text-align:right; width:100%; font-family:'Cairo';
+  }
+  .nav-item span.ic{font-size:17px;}
+  .nav-item:hover{ background:#F5F1FF; color:var(--ink); }
+  .logout-lbl{ margin-top:auto; display:flex; align-items:center; gap:8px; padding:12px 14px; border-radius:12px; color:var(--pink); font-weight:800; font-size:13px; cursor:pointer; }
+  .logout-lbl:hover{ background:#FFF0F5; }
+  .sidebar-foot{ font-size:11px; color:#B6ACD9; padding:8px; text-align:center; }
+
+  #app:has(#tabOverview:checked) label[for="tabOverview"],
+  #app:has(#tabPlayers:checked) label[for="tabPlayers"],
+  #app:has(#tabClans:checked) label[for="tabClans"],
+  #app:has(#tabBadges:checked) label[for="tabBadges"]{
+    background:linear-gradient(90deg,#EFE7FF,#F8F4FF); color:var(--primary-deep); box-shadow:inset 3px 0 0 var(--primary);
+  }
+
+  .main-col{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  .topbar{ display:flex; align-items:center; justify-content:flex-end; gap:16px; padding:18px 28px; background:var(--surface); border-bottom:1px solid var(--border); }
+  .search-box{ display:flex; align-items:center; gap:8px; background:#F5F1FF; border-radius:12px; padding:9px 14px; width:260px; }
+  .search-box input{ border:none; background:none; outline:none; font-family:'Cairo'; font-size:13px; width:100%; }
+  .user-chip{ display:flex; align-items:center; gap:10px; }
+  .user-chip .hex{ width:36px; height:40px; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(145deg,var(--pink),#FF3E7F); }
+  .user-chip span{font-weight:700; font-size:13px;}
+
+  main.content{ padding:26px 28px 60px; overflow-y:auto; }
+  .section{ display:none; }
+  #app:has(#tabOverview:checked) #tab-overview{ display:block; }
+  #app:has(#tabPlayers:checked) #tab-players{ display:block; }
+  #app:has(#tabClans:checked) #tab-clans{ display:block; }
+  #app:has(#tabBadges:checked) #tab-badges{ display:block; }
+  .page-head{ margin-bottom:20px; }
+  .page-head h2{ font-size:20px; }
+  .page-head .sub{ font-size:12px; color:var(--ink-soft); font-weight:600; margin-top:2px; }
+
+  .stats-row{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:26px; }
+  .stat-card{ background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:18px; box-shadow:var(--shadow); }
+  .stat-card .lbl{font-size:12px; color:var(--ink-soft); font-weight:700;}
+  .stat-card .val{font-family:'Lalezar'; font-size:28px; color:var(--primary-deep); margin-top:4px;}
+  .stat-card .bar{height:6px; border-radius:4px; background:#EFEAFF; margin-top:10px; overflow:hidden;}
+  .stat-card .bar i{display:block; height:100%; border-radius:4px; background:linear-gradient(90deg,var(--primary),var(--pink)); width:0; animation:growBar 1.3s ease forwards;}
+  @keyframes growBar{ to{ width:var(--w); } }
+
+  .podium-card{ background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:26px; box-shadow:var(--shadow); margin-bottom:26px; }
+  .podium-card h3{ font-size:18px; margin-bottom:18px; color:var(--ink); }
+  .podium{ display:flex; align-items:flex-end; justify-content:center; gap:18px; min-height:150px; }
+  .podium-empty{ text-align:center; color:var(--ink-soft); font-size:13px; padding:30px; }
+  .p-slot{ text-align:center; width:140px; }
+  .p-hex{ width:74px; height:84px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:26px; color:#fff; }
+  .p-name{ font-weight:800; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .p-clan{ font-size:11px; color:var(--ink-soft); margin-bottom:8px; }
+  .p-bar{ border-radius:14px 14px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:10px; font-family:'Lalezar'; color:#fff; font-size:15px; }
+  .p1 .p-hex{ background:linear-gradient(145deg,var(--yellow),#FFA000); } .p1 .p-bar{ height:120px; background:linear-gradient(160deg,var(--yellow),#FFA000);}
+  .p2 .p-hex{ background:linear-gradient(145deg,#B9C2E0,#8A93BE); } .p2 .p-bar{ height:88px; background:linear-gradient(160deg,#B9C2E0,#8A93BE);}
+  .p3 .p-hex{ background:linear-gradient(145deg,#F3B48A,#D98554); } .p3 .p-bar{ height:66px; background:linear-gradient(160deg,#F3B48A,#D98554);}
+
+  .panel{ background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:20px; box-shadow:var(--shadow); }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .panel-head h3{font-size:17px;}
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:right; font-size:12px; color:var(--ink-soft); padding:10px 12px; border-bottom:2px solid var(--border);}
+  td{ padding:12px; font-size:13.5px; border-bottom:1px solid #F2EEFF; }
+  tr:hover td{ background:#FAF8FF; }
+  .row-player{ display:flex; align-items:center; gap:10px; }
+  .mini-h{ width:32px; height:36px; display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; flex-shrink:0; }
+  .tag{ display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800; }
+  .tag.masters{ background:#FFF1D6; color:#B87A00; }
+  .tag.legend{ background:#FDE3F0; color:#C4276F; }
+  .tag.mythic{ background:#EAE2FF; color:#6633CC; }
+  .rank-num{ font-family:'Lalezar'; color:var(--primary-deep); font-size:15px; }
+
+  .clan-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .clan-card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:18px; box-shadow:var(--shadow); transition:.2s; }
+  .clan-card:hover{ transform:translateY(-4px); border-color:var(--primary); }
+  .clan-top{ display:flex; align-items:center; gap:12px; margin-bottom:10px;}
+  .clan-hex{ width:46px; height:52px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; background:linear-gradient(145deg,var(--primary),var(--primary-deep)); }
+  .clan-name{ font-weight:800; font-size:15px; }
+  .clan-tag{ font-size:11px; color:var(--ink-soft); }
+  .clan-stats{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:12px; }
+  .clan-stats b{ display:block; color:var(--ink); font-family:'Lalezar'; font-size:16px; }
+
+  .badge-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .badge-card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:20px; text-align:center; box-shadow:var(--shadow); transition:.25s; position:relative; overflow:hidden;}
+  .badge-card:hover{ transform:translateY(-5px) rotate(-1deg); }
+  .badge-card.locked{ opacity:.45; filter:grayscale(60%); }
+  .b-hex{ width:64px; height:74px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:28px; color:#fff; background:linear-gradient(145deg,var(--yellow),#FFA000); }
+  .badge-card h4{ font-size:14px; margin-bottom:4px; }
+  .badge-card p{ font-size:11.5px; color:var(--ink-soft); }
+  .lock-tip{ position:absolute; top:10px; left:10px; font-size:16px; }
+  .row-hidden{ display:none !important; }
+  .banner-note{ background:#FFF7E6; border:1px solid #FFE4A6; color:#8A6100; font-size:12px; padding:10px 14px; border-radius:12px; margin-bottom:16px; }
+
+  @media(max-width:900px){
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+    .clan-grid{grid-template-columns:repeat(2,1fr);}
+    .badge-grid{grid-template-columns:repeat(2,1fr);}
+    .sidebar{ width:70px; }
+    .sidebar .lbl-text, .sb-brand h1{ display:none; }
+    .search-box{ width:150px; }
+  }
+</style>
+</head>
+<body>
+
+<input type="checkbox" id="authToggle" class="hidden-toggle">
+
+<!-- ================= LOGIN / JOIN ================= -->
+<div id="login-screen">
+  <div class="hex-bg">
+    <span style="top:8%; right:12%; animation-delay:.2s;"></span>
+    <span style="top:20%; right:75%; animation-delay:1.1s;"></span>
+    <span style="top:55%; right:5%; animation-delay:2s;"></span>
+    <span style="top:70%; right:40%; animation-delay:.6s;"></span>
+    <span style="top:35%; right:55%; animation-delay:1.8s;"></span>
+    <span style="top:85%; right:80%; animation-delay:.9s;"></span>
+  </div>
+  <div class="login-card">
+    <div class="brand-mark">R</div>
+    <h1>Rmd Null</h1>
+
+    <div id="joinStep1">
+      <p>سجّل بياناتك، وسنرسل رابط تسجيل دخول إلى بريدك لتأكيد حسابك. إن كان بريدك مسجلاً مسبقاً سيتم تسجيل دخولك تلقائياً لحسابك الحالي.</p>
+      <div class="field">
+        <label>اسم اللاعب *</label>
+        <input id="regUsername" type="text" placeholder="مثال: ذئب_الحلبة">
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني *</label>
+        <input id="regEmail" type="email" placeholder="example@email.com">
+      </div>
+      <div class="field">
+        <label>اسم الكلان (اختياري)</label>
+        <input id="regClan" type="text" placeholder="مثال: أساطير الحلبة">
+      </div>
+      <div class="field">
+        <label>عدد الكؤوس الحالي (اختياري)</label>
+        <input id="regTrophies" type="number" min="0" placeholder="0">
+      </div>
+      <button id="joinBtn" class="btn-primary" onclick="handleJoin()">دخول / الانضمام إلى الحلبة</button>
+    </div>
+
+    <div id="joinStep2" style="display:none;">
+      <p>تم إرسال رابط تسجيل الدخول إلى بريدك الإلكتروني <b id="magicEmailLabel"></b>.<br>افتح البريد واضغط على الرابط للمتابعة.</p>
+      <div class="otp-resend">
+        <span id="resendCountdown"></span>
+        <span id="resendOtpBtn" class="muted-link" onclick="handleResendMagicLink()">إعادة إرسال الرابط</span>
+      </div>
+    </div>
+
+    <div id="joinStep3" style="display:none;">
+      <p>اسم اللاعب <b id="conflictUsernameLabel"></b> محجوز لحساب آخر. اختر اسماً مختلفاً لإكمال حسابك (حسابك موثّق بالفعل، لا حاجة لإعادة إدخال الرمز):</p>
+      <div class="field">
+        <label>اسم لاعب جديد *</label>
+        <input id="regUsername2" type="text" placeholder="اسم آخر غير مستخدم">
+      </div>
+      <button id="retryBtn" class="btn-primary" onclick="handleRetryUsername()">إعادة المحاولة</button>
+    </div>
+
+    <div id="loginMsg" class="login-msg"></div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <input type="radio" name="tab" id="tabOverview" class="hidden-toggle" checked>
+  <input type="radio" name="tab" id="tabPlayers" class="hidden-toggle">
+  <input type="radio" name="tab" id="tabClans" class="hidden-toggle">
+  <input type="radio" name="tab" id="tabBadges" class="hidden-toggle">
+
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <div class="mini-hex">R</div>
+      <h1>Rmd Null</h1>
+    </div>
+    <label class="nav-item" for="tabOverview"><span class="ic">🏆</span><span class="lbl-text">نظرة عامة</span></label>
+    <label class="nav-item" for="tabPlayers"><span class="ic">🎮</span><span class="lbl-text">اللاعبون</span></label>
+    <label class="nav-item" for="tabClans"><span class="ic">🛡️</span><span class="lbl-text">الكلانات</span></label>
+    <label class="nav-item" for="tabBadges"><span class="ic">⭐</span><span class="lbl-text">الشارات</span></label>
+    <label class="logout-lbl" for="authToggle" onclick="handleLogout()">⏻ <span class="lbl-text">تسجيل خروج</span></label>
+    <div class="sidebar-foot">Rmd Null © 2026<br>غير رسمي وغير تابع لـ Supercell</div>
+  </aside>
+
+  <div class="main-col">
+    <div class="topbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="globalSearch" placeholder="ابحث عن لاعب...">
+      </div>
+      <div class="user-chip">
+        <div class="hex">👤</div>
+        <span id="loggedUsername">لاعب</span>
+      </div>
+    </div>
+
+    <main class="content">
+      <!-- OVERVIEW -->
+      <section class="section" id="tab-overview">
+        <div class="page-head"><h2>نظرة عامة على الحلبة</h2><div class="sub">بيانات حيّة من قاعدة اللاعبين</div></div>
+
+        <div class="stats-row">
+          <div class="stat-card"><div class="lbl">إجمالي اللاعبين</div><div class="val" id="statTotalPlayers">0</div><div class="bar"><i style="--w:0%"></i></div></div>
+          <div class="stat-card"><div class="lbl">إجمالي الكلانات</div><div class="val" id="statTotalClans">0</div><div class="bar"><i style="--w:0%"></i></div></div>
+          <div class="stat-card"><div class="lbl">مجموع الكؤوس</div><div class="val" id="statTotalTrophies">0</div><div class="bar"><i style="--w:0%"></i></div></div>
+          <div class="stat-card"><div class="lbl">مباريات اليوم</div><div class="val">—</div><div class="bar"><i style="--w:0%"></i></div></div>
+        </div>
+
+        <div class="podium-card">
+          <h3>🥇 أقوى 3 لاعبين حالياً</h3>
+          <div class="podium" id="podium"><div class="podium-empty">لا يوجد لاعبون بعد</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>أعلى الكلانات (تجريبي)</h3></div>
+          <div class="clan-grid">
+            <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🛡️</div><div><div class="clan-name">أساطير الحلبة</div><div class="clan-tag">#LEGND2026</div></div></div><div class="clan-stats"><div>الترتيب<b>#1</b></div><div>الأعضاء<b>47/50</b></div><div>الكؤوس<b>912k</b></div></div></div>
+            <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦅</div><div><div class="clan-name">صقور البرق</div><div class="clan-tag">#FALCN99</div></div></div><div class="clan-stats"><div>الترتيب<b>#2</b></div><div>الأعضاء<b>50/50</b></div><div>الكؤوس<b>874k</b></div></div></div>
+            <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🗡️</div><div><div class="clan-name">فرسان الصمت</div><div class="clan-tag">#SILNT01</div></div></div><div class="clan-stats"><div>الترتيب<b>#3</b></div><div>الأعضاء<b>45/50</b></div><div>الكؤوس<b>801k</b></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PLAYERS -->
+      <section class="section" id="tab-players">
+        <div class="page-head"><h2>تصنيف اللاعبين</h2><div class="sub">مباشر من قاعدة بيانات Supabase</div></div>
+        <div class="panel">
+          <table id="playersTable">
+            <thead><tr><th>#</th><th>اللاعب</th><th>الكلان</th><th>الكؤوس 🏆</th><th>الانتصارات</th><th>الرتبة</th></tr></thead>
+            <tbody id="playersBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--ink-soft); padding:24px;">جارِ التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CLANS -->
+      <section class="section" id="tab-clans">
+        <div class="page-head"><h2>تصنيف الكلانات</h2><div class="sub">بيانات تجريبية — يمكن ربطها بجدول Supabase لاحقاً بنفس الطريقة</div></div>
+        <div class="banner-note">هذه القائمة ثابتة حالياً. أخبرني إذا رغبت بإنشاء جدول clans وربطها بنفس الأسلوب.</div>
+        <div class="clan-grid">
+          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🛡️</div><div><div class="clan-name">أساطير الحلبة</div><div class="clan-tag">#LEGND2026</div></div></div><div class="clan-stats"><div>الترتيب<b>#1</b></div><div>الأعضاء<b>47/50</b></div><div>الكؤوس<b>912k</b></div></div></div>
+          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦅</div><div><div class="clan-name">صقور البرق</div><div class="clan-tag">#FALCN99</div></div></div><div class="clan-stats"><div>الترتيب<b>#2</b></div><div>الأعضاء<b>50/50</b></div><div>الكؤوس<b>874k</b></div></div></div>
+          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🗡️</div><div><div class="clan-name">فرسان الصمت</div><div class="clan-tag">#SILNT01</div></div></div><div class="clan-stats"><div>الترتيب<b>#3</b></div><div>الأعضاء<b>45/50</b></div><div>الكؤوس<b>801k</b></div></div></div>
+          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦉</div><div><div class="clan-name">نسور الذهب</div><div class="clan-tag">#GOLD777</div></div></div><div class="clan-stats"><div>الترتيب<b>#4</b></div><div>الأعضاء<b>49/50</b></div><div>الكؤوس<b>764k</b></div></div></div>
+        </div>
+      </section>
+
+      <!-- BADGES -->
+      <section class="section" id="tab-badges">
+        <div class="page-head"><h2>الشارات والإنجازات</h2><div class="sub">تجريبية حالياً</div></div>
+        <div class="badge-grid">
+          <div class="badge-card"><div class="b-hex hex">🏆</div><h4>بطل الموسم</h4><p>الوصول للمركز الأول موسمياً</p></div>
+          <div class="badge-card"><div class="b-hex hex">⚔️</div><h4>ألف انتصار</h4><p>تحقيق 1000 فوز في الحلبة</p></div>
+          <div class="badge-card"><div class="b-hex hex">👑</div><h4>أسطورة الحلبة</h4><p>الوصول لرتبة Legendary</p></div>
+          <div class="badge-card"><div class="b-hex hex">🌟</div><h4>صياد النجوم</h4><p>جمع 100 لاعب مميز</p></div>
+          <div class="badge-card locked"><div class="lock-tip">🔒</div><div class="b-hex hex">🏰</div><h4>قلعة لا تُقهر</h4><p>الفوز بـ 20 معركة كلان متتالية</p></div>
+          <div class="badge-card locked"><div class="lock-tip">🔒</div><div class="b-hex hex">⚡</div><h4>سرعة البرق</h4><p>إنهاء 3 مباريات خلال دقيقة</p></div>
+          <div class="badge-card locked"><div class="lock-tip">🔒</div><div class="b-hex hex">🎁</div><h4>ملك السحب</h4><p>فتح 50 صندوق أسطوري</p></div>
+          <div class="badge-card locked"><div class="lock-tip">🔒</div><div class="b-hex hex">🎖️</div><h4>قائد الكلان</h4><p>قيادة كلان مصنّف ضمن أعلى 10</p></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============================================================
+   1) عدّل هذين السطرين ببيانات مشروعك في Supabase
+   Settings → API → Project URL / anon public key
+   ============================================================ */
+const SUPABASE_URL = "https://xymxdprcbgdgedrzoryo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Fyk5kX_1zrd_0Oqg0pMVGw_hL2rWx_G";
+
+const sb = (SUPABASE_URL.startsWith("http"))
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+function escapeHtml(s){
+  return (s || "").toString().replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function tierFor(trophies){
+  if(trophies >= 40000) return {cls:"masters", label:"ماسترز"};
+  if(trophies >= 30000) return {cls:"legend", label:"أسطوري"};
+  if(trophies >= 15000) return {cls:"mythic", label:"خرافي"};
+  return {cls:"mythic", label:"صاعد"};
+}
+
+/* ============================================================
+   نظام تسجيل الدخول: Supabase Auth + Email OTP
+   pendingSignup يحمل بيانات النموذج بين إرسال الرمز والتحقق منه
+   ============================================================ */
+let pendingSignup = null;     // بيانات النموذج قبل إرسال الرابط، تُحفظ مؤقتاً محلياً لتصمد أمام إعادة تحميل الصفحة بعد Magic Link
+let verifiedUserId = null;    // يُملأ عند اكتشاف جلسة Supabase حقيقية
+let resendCooldownUntil = 0;
+let resendTimerHandle = null;
+const PENDING_KEY = "rmdnull_pending_signup";
+const SITE_URL = window.location.origin + window.location.pathname;
+
+function showMsg(text, kind){
+  const msg = document.getElementById("loginMsg");
+  msg.className = "login-msg" + (kind ? " " + kind : "");
+  msg.textContent = text;
+}
+
+function isValidEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function setStep(step){
+  document.getElementById("joinStep1").style.display = step === 1 ? "block" : "none";
+  document.getElementById("joinStep2").style.display = step === 2 ? "block" : "none";
+  document.getElementById("joinStep3").style.display = step === 3 ? "block" : "none";
+}
+
+function startResendCooldown(seconds){
+  resendCooldownUntil = Date.now() + seconds * 1000;
+  const btn = document.getElementById("resendOtpBtn");
+  const label = document.getElementById("resendCountdown");
+  btn.classList.add("disabled");
+  if(resendTimerHandle) clearInterval(resendTimerHandle);
+  resendTimerHandle = setInterval(() => {
+    const remaining = Math.ceil((resendCooldownUntil - Date.now()) / 1000);
+    if(remaining <= 0){
+      clearInterval(resendTimerHandle);
+      btn.classList.remove("disabled");
+      label.textContent = "";
+    }else{
+      label.textContent = "يمكنك إعادة الإرسال بعد " + remaining + " ث";
+    }
+  }, 500);
+}
+
+// خطوة 1: إرسال Magic Link إلى البريد
+async function handleJoin(){
+  if(!sb){
+    showMsg("لم يتم ربط قاعدة البيانات بعد (SUPABASE_URL غير معبأ في الكود).", "err");
+    return;
+  }
+  const username = document.getElementById("regUsername").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
+  const clan = document.getElementById("regClan").value.trim();
+  const trophies = parseInt(document.getElementById("regTrophies").value, 10) || 0;
+
+  if(!username){ showMsg("الرجاء إدخال اسم اللاعب.", "err"); return; }
+  if(!email || !isValidEmail(email)){ showMsg("البريد الإلكتروني غير صحيح.", "err"); return; }
+
+  const btn = document.getElementById("joinBtn");
+  btn.disabled = true;
+  showMsg("جارِ إرسال رابط تسجيل الدخول...");
+
+  const signupData = { email, username, clan: clan || null, trophies };
+
+  try{
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true, emailRedirectTo: SITE_URL }
+    });
+    if(error) throw error;
+
+    // نحفظها محلياً لأن الصفحة ستُعاد تحميلها بالكامل عند العودة من رابط البريد
+    localStorage.setItem(PENDING_KEY, JSON.stringify(signupData));
+    pendingSignup = signupData;
+
+    document.getElementById("magicEmailLabel").textContent = email;
+    setStep(2);
+    showMsg("تم إرسال رابط تسجيل الدخول إلى بريدك الإلكتروني. افتح البريد واضغط على الرابط للمتابعة.", "ok");
+    startResendCooldown(60);
+  }catch(e){
+    if(String(e.message || "").toLowerCase().includes("rate limit")){
+      showMsg("الرجاء الانتظار قليلاً قبل طلب رابط جديد.", "err");
+    }else{
+      showMsg("حدث خطأ في الاتصال بقاعدة البيانات: " + e.message, "err");
+    }
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+// إعادة إرسال رابط الدخول (يحترم الحد الزمني)
+async function handleResendMagicLink(){
+  if(Date.now() < resendCooldownUntil || !pendingSignup) return;
+  showMsg("جارِ إعادة إرسال الرابط...");
+  try{
+    const { error } = await sb.auth.signInWithOtp({
+      email: pendingSignup.email,
+      options: { shouldCreateUser: true, emailRedirectTo: SITE_URL }
+    });
+    if(error) throw error;
+    showMsg("تم إرسال رابط جديد إلى بريدك.", "ok");
+    startResendCooldown(60);
+  }catch(e){
+    showMsg("تعذّر إرسال الرابط الآن، حاول لاحقاً.", "err");
+  }
+}
+
+// بعد اكتشاف جلسة حقيقية (عائد من Magic Link، أو جلسة محفوظة سابقاً عند فتح الصفحة):
+// ابحث عن لاعب مرتبط بهذا الحساب، وإن لم يوجد أنشئه من بيانات pendingSignup المحفوظة محلياً
+async function findOrCreatePlayer(userId){
+  showMsg("جارِ إعداد حسابك...");
+  try{
+    const { data: existing, error: findErr } = await sb
+      .from("players")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if(findErr) throw findErr;
+
+    if(existing){
+      // هذا الحساب لديه لاعب مسجل مسبقاً — سجّل دخوله مباشرة، بدون إنشاء صف جديد
+      localStorage.removeItem(PENDING_KEY);
+      enterDashboard(existing.username);
+      return;
+    }
+
+    if(!pendingSignup){
+      const stored = localStorage.getItem(PENDING_KEY);
+      if(stored){
+        try{ pendingSignup = JSON.parse(stored); }catch(e){}
+      }
+    }
+
+    if(!pendingSignup){
+      // جلسة موجودة لكن لا توجد بيانات تسجيل محفوظة (مثلاً فُتح الرابط من متصفح/جهاز آخر)
+      document.getElementById("conflictUsernameLabel").textContent = "";
+      setStep(3);
+      showMsg("أكمل إنشاء حسابك باختيار اسم لاعب.", "err");
+      return;
+    }
+
+    const { error: insErr } = await sb.from("players").insert({
+      user_id: userId,
+      username: pendingSignup.username,
+      clan: pendingSignup.clan,
+      trophies: pendingSignup.trophies
+    });
+
+    if(insErr){
+      const m = String(insErr.message || "").toLowerCase();
+      if(m.includes("user_id")){
+        showMsg("هذا الحساب لديه لاعب مسجل مسبقاً.", "err");
+        return;
+      }
+      if(insErr.code === "23505" || m.includes("username") || m.includes("duplicate")){
+        document.getElementById("conflictUsernameLabel").textContent = pendingSignup.username;
+        setStep(3);
+        showMsg("اسم اللاعب هذا مستخدم بالفعل، اختر اسماً آخر.", "err");
+        return;
+      }
+      throw insErr;
+    }
+
+    localStorage.removeItem(PENDING_KEY);
+    enterDashboard(pendingSignup.username);
+  }catch(e){
+    showMsg("حدث خطأ في الاتصال بقاعدة البيانات: " + e.message, "err");
+  }
+}
+
+// خطوة 3: إعادة المحاولة باسم لاعب مختلف (الحساب موثّق بالفعل عبر Magic Link)
+async function handleRetryUsername(){
+  const newUsername = document.getElementById("regUsername2").value.trim();
+  if(!newUsername){ showMsg("الرجاء إدخال اسم لاعب.", "err"); return; }
+  if(!verifiedUserId){ showMsg("انتهت الجلسة، الرجاء إعادة تسجيل الدخول.", "err"); setStep(1); return; }
+
+  const btn = document.getElementById("retryBtn");
+  btn.disabled = true;
+  showMsg("جارِ المحاولة...");
+
+  try{
+    const { error: insErr } = await sb.from("players").insert({
+      user_id: verifiedUserId,
+      username: newUsername,
+      clan: pendingSignup ? pendingSignup.clan : null,
+      trophies: pendingSignup ? pendingSignup.trophies : 0
+    });
+
+    if(insErr){
+      const m = String(insErr.message || "").toLowerCase();
+      if(insErr.code === "23505" || m.includes("username") || m.includes("duplicate")){
+        showMsg("هذا الاسم مستخدم أيضاً، جرّب اسماً آخر.", "err");
+        return;
+      }
+      throw insErr;
+    }
+
+    localStorage.removeItem(PENDING_KEY);
+    enterDashboard(newUsername);
+  }catch(e){
+    showMsg("حدث خطأ في الاتصال بقاعدة البيانات: " + e.message, "err");
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+function enterDashboard(username){
+  showMsg("");
+  document.getElementById("loggedUsername").textContent = username;
+  document.getElementById("authToggle").checked = true;
+  loadDashboard();
+}
+
+async function handleLogout(){
+  try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  pendingSignup = null;
+  verifiedUserId = null;
+  localStorage.removeItem(PENDING_KEY);
+  setStep(1);
+  document.getElementById("regUsername").value = "";
+  document.getElementById("regEmail").value = "";
+  document.getElementById("regClan").value = "";
+  document.getElementById("regTrophies").value = "";
+}
+
+// اكتشاف أخطاء Magic Link الظاهرة في رابط الصفحة (رابط منتهي الصلاحية أو غير صالح)
+(function checkUrlForAuthError(){
+  const raw = window.location.hash || window.location.search;
+  if(raw && raw.includes("error")){
+    const params = new URLSearchParams(raw.replace(/^[#?]/, ""));
+    const desc = params.get("error_description");
+    if(desc){
+      showMsg(decodeURIComponent(desc.replace(/\+/g, " ")), "err");
+    }else{
+      showMsg("فشل تسجيل الدخول عبر الرابط. الرجاء طلب رابط جديد.", "err");
+    }
+    history.replaceState(null, "", window.location.pathname);
+  }
+})();
+
+// المستمع الرئيسي: يعمل عند العودة من Magic Link، وأيضاً عند وجود جلسة محفوظة سابقاً عند فتح الصفحة
+if(sb){
+  const stored = localStorage.getItem(PENDING_KEY);
+  if(stored){
+    try{ pendingSignup = JSON.parse(stored); }catch(e){}
+  }
+
+  sb.auth.onAuthStateChange((event, session) => {
+    if(session && session.user){
+      verifiedUserId = session.user.id;
+      findOrCreatePlayer(session.user.id);
+    }
+  });
+}
+
+async function loadDashboard(){
+  if(!sb) return;
+  const { data, error } = await sb
+    .from("players")
+    .select("*")
+    .order("trophies", { ascending:false });
+
+  if(error){
+    console.error(error);
+    return;
+  }
+  renderStats(data);
+  renderPodium(data.slice(0,3));
+  renderPlayersTable(data);
+}
+
+function renderStats(list){
+  document.getElementById("statTotalPlayers").textContent = list.length.toLocaleString("en-US");
+  const totalTrophies = list.reduce((a,p) => a + (p.trophies || 0), 0);
+  document.getElementById("statTotalTrophies").textContent = (totalTrophies/1000).toFixed(1) + "k";
+  const clansSet = new Set(list.map(p => p.clan).filter(Boolean));
+  document.getElementById("statTotalClans").textContent = clansSet.size.toLocaleString("en-US");
+}
+
+function renderPodium(top3){
+  const el = document.getElementById("podium");
+  if(!top3.length){
+    el.innerHTML = '<div class="podium-empty">لا يوجد لاعبون بعد — كن أول من ينضم!</div>';
+    return;
+  }
+  const order = [top3[1], top3[0], top3[2]];
+  const classes = ["p2","p1","p3"];
+  el.innerHTML = order.map((p,i) => {
+    if(!p) return "";
+    return `<div class="p-slot ${classes[i]}">
+      <div class="p-hex hex">🎮</div>
+      <div class="p-name">${escapeHtml(p.username)}</div>
+      <div class="p-clan">${escapeHtml(p.clan || "بلا كلان")}</div>
+      <div class="p-bar">${(p.trophies || 0).toLocaleString("en-US")}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderPlayersTable(list){
+  const tbody = document.getElementById("playersBody");
+  if(!list.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--ink-soft);padding:24px;">لا يوجد لاعبون بعد — كن أول من ينضم!</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((p,i) => {
+    const t = tierFor(p.trophies || 0);
+    const searchKey = (p.username + " " + (p.clan || "")).toLowerCase();
+    return `<tr data-search="${escapeHtml(searchKey)}">
+      <td class="rank-num">${i+1}</td>
+      <td><div class="row-player"><div class="mini-h hex" style="background:linear-gradient(145deg,var(--primary),var(--primary-deep))">🎮</div>${escapeHtml(p.username)}</div></td>
+      <td>${escapeHtml(p.clan || "—")}</td>
+      <td><b>${(p.trophies || 0).toLocaleString("en-US")}</b></td>
+      <td>${(p.wins || 0).toLocaleString("en-US")}</td>
+      <td><span class="tag ${t.cls}">${t.label}</span></td>
+    </tr>`;
+  }).join("");
+}
+
+try{
+  document.getElementById("globalSearch").addEventListener("input", function(){
+    const q = this.value.trim().toLowerCase();
+    document.querySelectorAll("#playersTable tbody tr").forEach(function(el){
+      const hay = el.dataset.search || el.textContent.toLowerCase();
+      el.classList.toggle("row-hidden", q.length > 0 && !hay.includes(q));
+    });
+  });
+}catch(e){}
+</script>
+</body>
+</html>
