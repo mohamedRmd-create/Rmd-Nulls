@@ -378,7 +378,7 @@ let verifiedUserId = null;    // يُملأ عند اكتشاف جلسة Supabas
 let resendCooldownUntil = 0;
 let resendTimerHandle = null;
 const PENDING_KEY = "rmdnull_pending_signup";
-const SITE_URL = https//mohamedrmd-create.github.io/Rmd-Nulls/;
+const SITE_URL = window.location.origin + window.location.pathname;
 
 function showMsg(text, kind){
   const msg = document.getElementById("loginMsg");
