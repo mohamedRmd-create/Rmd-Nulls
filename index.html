@@ -148,6 +148,16 @@
   th{ text-align:right; font-size:12px; color:var(--ink-soft); padding:10px 12px; border-bottom:2px solid var(--border);}
   td{ padding:12px; font-size:13.5px; border-bottom:1px solid #F2EEFF; }
   tr:hover td{ background:#FAF8FF; }
+  #playersTable tbody tr.player-row{ cursor:pointer; transition:background .12s ease; }
+  #playersTable tbody tr.player-row:hover td{ background:#F3EEFF; }
+  #playersTable tbody tr.player-row:active td{ background:#EDE5FF; }
+  #playersTable tbody tr.player-row:focus-visible{ outline:2px solid var(--primary); outline-offset:-2px; }
+  #playersTable tbody tr.player-row .row-player{ position:relative; }
+  #playersTable tbody tr.player-row .row-player::after{
+    content:"›"; margin-inline-start:auto; padding-inline-start:8px; color:var(--ink-soft);
+    font-weight:800; opacity:0; transition:opacity .12s ease; font-size:16px;
+  }
+  #playersTable tbody tr.player-row:hover .row-player::after{ opacity:1; }
   .row-player{ display:flex; align-items:center; gap:10px; }
   .mini-h{ width:32px; height:36px; display:flex; align-items:center; justify-content:center; font-size:15px; color:#fff; flex-shrink:0; }
   .tag{ display:inline-block; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:800; }
@@ -176,6 +186,86 @@
   .lock-tip{ position:absolute; top:10px; left:10px; font-size:16px; }
   .row-hidden{ display:none !important; }
   .banner-note{ background:#FFF7E6; border:1px solid #FFE4A6; color:#8A6100; font-size:12px; padding:10px 14px; border-radius:12px; margin-bottom:16px; }
+
+  /* ===================================================
+     PLAYER PROFILE MODAL
+     =================================================== */
+  #playerModalOverlay{
+    position:fixed; inset:0; background:rgba(36,23,72,.5); backdrop-filter:blur(2px);
+    z-index:80; display:none; align-items:center; justify-content:center; padding:20px;
+    opacity:0; transition:opacity .18s ease;
+  }
+  #playerModalOverlay.open{ display:flex; }
+  #playerModalOverlay.show{ opacity:1; }
+  .player-modal{
+    position:relative; width:100%; max-width:420px; max-height:min(88vh,720px);
+    background:var(--surface); border-radius:26px; box-shadow:0 20px 60px rgba(36,23,72,.35);
+    display:flex; flex-direction:column; overflow:hidden;
+    transform:translateY(16px) scale(.97); opacity:0; transition:transform .2s cubic-bezier(.2,1.4,.4,1), opacity .18s ease;
+  }
+  #playerModalOverlay.show .player-modal{ transform:translateY(0) scale(1); opacity:1; }
+  .pm-close{
+    position:absolute; top:14px; left:14px; width:36px; height:36px; border-radius:12px;
+    background:rgba(255,255,255,.85); color:var(--ink-soft); display:flex; align-items:center; justify-content:center;
+    font-size:16px; cursor:pointer; border:1px solid var(--border); z-index:2; transition:.15s;
+  }
+  .pm-close:hover{ background:#fff; color:var(--ink); }
+  .pm-scroll{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  .pm-head{
+    padding:34px 24px 20px; text-align:center; background:linear-gradient(160deg,#F2ECFF,#FBF9FF);
+    border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .pm-avatar{
+    width:84px; height:96px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center;
+    font-size:34px; color:#fff; background:linear-gradient(145deg,var(--primary),var(--primary-deep));
+    box-shadow:0 10px 24px rgba(91,50,214,.3); overflow:hidden;
+  }
+  .pm-avatar img{ width:100%; height:100%; object-fit:cover; }
+  .pm-name{ font-family:'Lalezar'; font-size:26px; color:var(--ink); word-break:break-word; }
+  .pm-tag{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin-top:2px; }
+  .pm-clan{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:#EFE7FF; color:var(--primary-deep); font-weight:800; font-size:11.5px; padding:6px 14px; border-radius:20px; }
+  .pm-body{ padding:22px 24px 26px; }
+  .pm-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
+  .pm-stat{ background:#FAF8FF; border:1px solid var(--border); border-radius:16px; padding:14px; text-align:center; }
+  .pm-stat .ic{ font-size:18px; margin-bottom:4px; display:block; }
+  .pm-stat .val{ font-family:'Lalezar'; font-size:21px; color:var(--primary-deep); }
+  .pm-stat .lbl{ font-size:11px; color:var(--ink-soft); font-weight:700; margin-top:2px; }
+  .pm-section{ margin-top:22px; }
+  .pm-section h4{ font-size:13.5px; color:var(--ink); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+  .pm-badges{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pm-badge{ display:flex; flex-direction:column; align-items:center; gap:6px; width:72px; text-align:center; }
+  .pm-badge .pb-ic{ width:48px; height:54px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; background:linear-gradient(145deg,var(--yellow),#FFA000); }
+  .pm-badge span{ font-size:10.5px; font-weight:700; color:var(--ink-soft); line-height:1.3; }
+  .pm-titles{ display:flex; flex-wrap:wrap; gap:8px; }
+  .pm-title-chip{ padding:6px 13px; border-radius:20px; font-size:12px; font-weight:800; background:#F2EEFF; color:var(--ink-soft); border:1px solid var(--border); }
+  .pm-title-chip.current{ background:linear-gradient(145deg,var(--yellow),#FFB300); color:#241748; border-color:transparent; box-shadow:0 4px 12px rgba(255,201,60,.4); }
+  .pm-empty-note{ font-size:12px; color:var(--ink-soft); background:#FAF8FF; border:1px dashed var(--border); border-radius:14px; padding:14px; text-align:center; }
+
+  /* skeleton loading state */
+  .pm-skel{ padding:34px 24px 30px; }
+  .pm-skel-avatar{ width:84px; height:96px; margin:0 auto 16px; border-radius:2px; }
+  .pm-skel-line{ height:14px; border-radius:8px; margin:0 auto; }
+  .sk{ background:linear-gradient(90deg,#EFEAFF 25%,#F6F2FF 37%,#EFEAFF 63%); background-size:400% 100%; animation:skShimmer 1.4s ease infinite; }
+  @keyframes skShimmer{ 0%{background-position:100% 0;} 100%{background-position:0 0;} }
+  .pm-skel-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:26px; }
+  .pm-skel-stats div{ height:64px; border-radius:16px; }
+
+  /* error state */
+  .pm-error{ padding:50px 24px; text-align:center; }
+  .pm-error .ic{ font-size:30px; margin-bottom:10px; }
+  .pm-error p{ font-size:13.5px; color:var(--ink-soft); margin-bottom:16px; line-height:1.6; }
+  .pm-retry{ display:inline-block; padding:10px 22px; border-radius:12px; background:var(--primary); color:#fff; font-weight:800; font-size:13px; cursor:pointer; border:none; font-family:'Cairo'; }
+  .pm-retry:hover{ background:var(--primary-deep); }
+
+  @media(max-width:640px){
+    #playerModalOverlay{ padding:0; align-items:flex-end; }
+    .player-modal{ max-width:100%; width:100%; max-height:92dvh; border-radius:26px 26px 0 0; }
+    .pm-close{ width:40px; height:40px; top:12px; left:12px; }
+    .pm-head{ padding:28px 20px 18px; }
+    .pm-body{ padding:18px 20px 28px; }
+    .pm-stats{ gap:10px; }
+    .pm-badge{ width:64px; }
+  }
 
   /* ===================================================
      TABLET  (641px – 1024px): sidebar collapses to icons
@@ -418,6 +508,14 @@
         </div>
       </section>
     </main>
+  </div>
+</div>
+
+<!-- ================= PLAYER PROFILE MODAL ================= -->
+<div id="playerModalOverlay" role="dialog" aria-modal="true" aria-labelledby="pmName">
+  <div class="player-modal" id="playerModalCard">
+    <div class="pm-close" id="pmCloseBtn" role="button" tabindex="0" aria-label="إغلاق">✕</div>
+    <div class="pm-scroll" id="pmScroll"></div>
   </div>
 </div>
 
@@ -718,6 +816,7 @@ async function loadDashboard(){
     console.error(error);
     return;
   }
+  playersCache = data; // نحتفظ بالقائمة محلياً لإعادة استخدامها عند فتح Profile بدل طلب إضافي
   renderStats(data);
   renderPodium(data.slice(0,3));
   renderPlayersTable(data);
@@ -759,7 +858,8 @@ function renderPlayersTable(list){
   tbody.innerHTML = list.map((p,i) => {
     const t = tierFor(p.trophies || 0);
     const searchKey = (p.username + " " + (p.clan || "")).toLowerCase();
-    return `<tr data-search="${escapeHtml(searchKey)}">
+    const pid = playerKeyFor(p);
+    return `<tr data-search="${escapeHtml(searchKey)}" class="player-row" data-player-id="${escapeHtml(pid)}" tabindex="0" role="button" aria-haspopup="dialog">
       <td class="rank-num">${i+1}</td>
       <td><div class="row-player"><div class="mini-h hex" style="background:linear-gradient(145deg,var(--primary),var(--primary-deep))">🎮</div>${escapeHtml(p.username)}</div></td>
       <td>${escapeHtml(p.clan || "—")}</td>
@@ -769,6 +869,202 @@ function renderPlayersTable(list){
     </tr>`;
   }).join("");
 }
+
+/* ============================================================
+   PLAYER PROFILE MODAL
+   يعتمد أولاً على القائمة المحمّلة مسبقاً (playersCache) لتفادي
+   طلب إضافي غير ضروري لـ Supabase، ويطلب من القاعدة فقط عند
+   الحاجة الفعلية (رابط مباشر أو لاعب غير موجود في القائمة الحالية).
+   ============================================================ */
+let playersCache = [];
+
+// نستخدم id كمفتاح أساسي إن وُجد، وإلا نرجع لـ user_id، وإلا اسم اللاعب كحل أخير
+function playerKeyFor(p){
+  if(p.id !== undefined && p.id !== null) return String(p.id);
+  if(p.user_id) return String(p.user_id);
+  return p.username;
+}
+function findPlayerInCache(key){
+  return playersCache.find(p => playerKeyFor(p) === key) || null;
+}
+
+// الحقول الآمنة والعامة فقط المسموح عرضها داخل الـ Profile (لا بريد إلكتروني ولا بيانات مصادقة)
+const PROFILE_SAFE_FIELDS = ["id","username","clan","trophies","wins","best_trophies","created_at","avatar_url"];
+function pickSafeFields(row){
+  const out = {};
+  PROFILE_SAFE_FIELDS.forEach(k => { if(row[k] !== undefined) out[k] = row[k]; });
+  return out;
+}
+
+async function fetchPlayerFromSupabase(key){
+  if(!sb) return null;
+  // نحاول أولاً بالمعرف الأساسي id، ثم user_id كخطة بديلة
+  let { data, error } = await sb
+    .from("players")
+    .select(PROFILE_SAFE_FIELDS.join(","))
+    .eq("id", key)
+    .maybeSingle();
+  if(!error && data) return data;
+
+  const alt = await sb
+    .from("players")
+    .select(PROFILE_SAFE_FIELDS.join(","))
+    .eq("user_id", key)
+    .maybeSingle();
+  if(!alt.error && alt.data) return alt.data;
+
+  if(error) throw error;
+  if(alt.error) throw alt.error;
+  return null;
+}
+
+let pmLastKey = null;
+
+function openPlayerProfile(key){
+  pmLastKey = key;
+  const overlay = document.getElementById("playerModalOverlay");
+  overlay.classList.add("open");
+  requestAnimationFrame(() => overlay.classList.add("show"));
+  document.body.style.overflow = "hidden";
+
+  const cached = findPlayerInCache(key);
+  if(cached){
+    renderProfileContent(pickSafeFields(cached));
+  }else{
+    renderProfileSkeleton();
+    fetchPlayerFromSupabase(key)
+      .then(row => {
+        if(pmLastKey !== key) return; // المستخدم فتح لاعبًا آخر أثناء الانتظار
+        if(!row){ renderProfileError(); return; }
+        renderProfileContent(row);
+      })
+      .catch(err => {
+        console.error(err);
+        if(pmLastKey === key) renderProfileError();
+      });
+  }
+}
+
+function closePlayerProfile(){
+  const overlay = document.getElementById("playerModalOverlay");
+  overlay.classList.remove("show");
+  document.body.style.overflow = "";
+  pmLastKey = null;
+  setTimeout(() => { overlay.classList.remove("open"); }, 180);
+}
+
+function renderProfileSkeleton(){
+  document.getElementById("pmScroll").innerHTML = `
+    <div class="pm-skel">
+      <div class="pm-skel-avatar sk hex"></div>
+      <div class="pm-skel-line sk" style="width:55%; height:20px; margin-bottom:10px;"></div>
+      <div class="pm-skel-line sk" style="width:35%;"></div>
+      <div class="pm-skel-stats">
+        <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+      </div>
+    </div>`;
+}
+
+function renderProfileError(){
+  document.getElementById("pmScroll").innerHTML = `
+    <div class="pm-error">
+      <div class="ic">⚠️</div>
+      <p>تعذر تحميل بيانات اللاعب، حاول مرة أخرى.</p>
+      <button class="pm-retry" onclick="pmLastKey && openPlayerProfile(pmLastKey)">إعادة المحاولة</button>
+    </div>`;
+}
+
+function formatJoinDate(iso){
+  if(!iso) return null;
+  try{
+    const d = new Date(iso);
+    if(isNaN(d.getTime())) return null;
+    return d.toLocaleDateString("ar", { year:"numeric", month:"long", day:"numeric" });
+  }catch(e){ return null; }
+}
+
+function renderProfileContent(p){
+  const name = escapeHtml(p.username || "لاعب");
+  const clan = p.clan ? `<div class="pm-clan">🛡️ ${escapeHtml(p.clan)}</div>` : "";
+  const avatar = p.avatar_url
+    ? `<img src="${escapeHtml(p.avatar_url)}" alt="${name}">`
+    : "🎮";
+  const joinDate = formatJoinDate(p.created_at);
+
+  // نبني بطاقات الإحصائيات فقط للحقول المتوفرة فعلياً — بدون أرقام وهمية لأي حقل غير موجود
+  const statCards = [];
+  statCards.push({ ic:"🏆", val:(p.trophies ?? 0).toLocaleString("en-US"), lbl:"الكؤوس الحالية" });
+  if(p.best_trophies !== undefined && p.best_trophies !== null){
+    statCards.push({ ic:"🔥", val:Number(p.best_trophies).toLocaleString("en-US"), lbl:"أعلى كؤوس" });
+  }
+  statCards.push({ ic:"⚔️", val:(p.wins ?? 0).toLocaleString("en-US"), lbl:"الانتصارات" });
+  if(joinDate){
+    statCards.push({ ic:"📅", val:joinDate, lbl:"تاريخ الانضمام" });
+  }
+
+  const statsHtml = statCards.map(s => `
+    <div class="pm-stat">
+      <span class="ic">${s.ic}</span>
+      <div class="val" style="${s.lbl==='تاريخ الانضمام' ? 'font-family:Cairo;font-size:13px;' : ''}">${s.val}</div>
+      <div class="lbl">${s.lbl}</div>
+    </div>`).join("");
+
+  // الشارات والألقاب: لا يوجد حالياً جدول/حقل يربطها باللاعب في قاعدة البيانات — نعرض حالة فارغة بدل بيانات وهمية
+  const badgesHtml = Array.isArray(p.badges) && p.badges.length
+    ? `<div class="pm-badges">${p.badges.map(b => `
+        <div class="pm-badge"><div class="pb-ic hex">${escapeHtml(b.icon || "⭐")}</div><span>${escapeHtml(b.name || "")}</span></div>`).join("")}</div>`
+    : `<div class="pm-empty-note">لا توجد شارات مرتبطة بعد</div>`;
+
+  const titlesHtml = Array.isArray(p.titles) && p.titles.length
+    ? `<div class="pm-titles">${p.titles.map(t => `
+        <span class="pm-title-chip ${t.current ? "current" : ""}">${escapeHtml(t.name || t)}</span>`).join("")}</div>`
+    : `<div class="pm-empty-note">لا توجد ألقاب بعد</div>`;
+
+  document.getElementById("pmScroll").innerHTML = `
+    <div class="pm-head">
+      <div class="pm-avatar hex">${avatar}</div>
+      <div class="pm-name" id="pmName">${name}</div>
+      <div class="pm-tag">#${escapeHtml(String(p.id ?? p.user_id ?? ""))}</div>
+      ${clan}
+    </div>
+    <div class="pm-body">
+      <div class="pm-stats">${statsHtml}</div>
+      <div class="pm-section">
+        <h4>⭐ الشارات</h4>
+        ${badgesHtml}
+      </div>
+      <div class="pm-section">
+        <h4>👑 الألقاب</h4>
+        ${titlesHtml}
+      </div>
+    </div>`;
+}
+
+// فتح النافذة عند النقر على صف لاعب (بالماوس أو لوحة المفاتيح)
+try{
+  document.getElementById("playersBody").addEventListener("click", function(e){
+    const row = e.target.closest("tr.player-row");
+    if(row) openPlayerProfile(row.dataset.playerId);
+  });
+  document.getElementById("playersBody").addEventListener("keydown", function(e){
+    if(e.key !== "Enter" && e.key !== " ") return;
+    const row = e.target.closest("tr.player-row");
+    if(row){ e.preventDefault(); openPlayerProfile(row.dataset.playerId); }
+  });
+
+  document.getElementById("pmCloseBtn").addEventListener("click", closePlayerProfile);
+  document.getElementById("pmCloseBtn").addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); closePlayerProfile(); }
+  });
+  document.getElementById("playerModalOverlay").addEventListener("click", function(e){
+    if(e.target === this) closePlayerProfile();
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && document.getElementById("playerModalOverlay").classList.contains("open")){
+      closePlayerProfile();
+    }
+  });
+}catch(e){ console.error(e); }
 
 try{
   document.getElementById("globalSearch").addEventListener("input", function(){
