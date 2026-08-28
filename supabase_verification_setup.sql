@@ -123,3 +123,115 @@ using (
 -- update auth.users
 -- set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
 -- where id = 'YOUR-AUTH-USER-UUID';
+
+-- 8) Store the verified data submitted by the player in the player profile.
+alter table public.players add column if not exists player_tag text;
+alter table public.players add column if not exists social_username text;
+alter table public.players add column if not exists account_created_date date;
+
+-- 9) Secure, atomic admin review function.
+-- On approval, the submitted verification data is copied to the player's profile
+-- in the same database transaction as changing the request status.
+create or replace function public.admin_review_verification_request(
+  p_request_id uuid,
+  p_status text,
+  p_admin_notes text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_request public.verification_requests%rowtype;
+  v_reviewed_at timestamptz := now();
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can review verification requests';
+  end if;
+
+  if p_status not in ('approved','rejected') then
+    raise exception 'Invalid review status';
+  end if;
+
+  select * into v_request
+  from public.verification_requests
+  where id = p_request_id
+  for update;
+
+  if not found then
+    raise exception 'Verification request not found';
+  end if;
+
+  if p_status = 'approved' then
+    update public.players
+    set player_tag = v_request.player_tag,
+        social_username = v_request.social_username,
+        wins = v_request.wins,
+        account_created_date = v_request.account_created_date::date,
+        verified = true,
+        verified_at = v_reviewed_at
+    where user_id = v_request.user_id;
+
+    if not found then
+      raise exception 'Player profile not found for this verification request';
+    end if;
+  end if;
+
+  update public.verification_requests
+  set status = p_status,
+      admin_notes = p_admin_notes,
+      rejection_reason = case when p_status = 'rejected' then p_admin_notes else null end,
+      reviewed_at = v_reviewed_at,
+      reviewed_by = auth.uid()
+  where id = p_request_id;
+
+  return jsonb_build_object(
+    'success', true,
+    'status', p_status,
+    'user_id', v_request.user_id
+  );
+end;
+$$;
+
+revoke all on function public.admin_review_verification_request(uuid,text,text) from public;
+grant execute on function public.admin_review_verification_request(uuid,text,text) to authenticated;
+
+-- 10) Protect verified profile fields from direct client-side manipulation.
+-- Only the admin review function/admin session may change these fields.
+create or replace function public.protect_player_verification()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    if new.verified is distinct from old.verified then
+      raise exception 'Only an admin can change player verification status';
+    end if;
+    if new.verified_at is distinct from old.verified_at then
+      raise exception 'Only an admin can change player verification timestamp';
+    end if;
+    if new.player_tag is distinct from old.player_tag then
+      raise exception 'Only an admin can change the verified Player Tag';
+    end if;
+    if new.social_username is distinct from old.social_username then
+      raise exception 'Only an admin can change the verified social username';
+    end if;
+    if new.account_created_date is distinct from old.account_created_date then
+      raise exception 'Only an admin can change the verified account creation date';
+    end if;
+    if new.wins is distinct from old.wins then
+      raise exception 'Only an admin can change the verified wins value';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+-- Re-create the trigger so it uses the expanded protection above.
+drop trigger if exists protect_player_verification on public.players;
+create trigger protect_player_verification
+before update on public.players
+for each row execute function public.protect_player_verification();

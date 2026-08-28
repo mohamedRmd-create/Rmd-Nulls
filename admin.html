@@ -111,18 +111,28 @@ async function review(status){
   const msg=status==='approved'?'هل أنت متأكد من قبول هذا الحساب وتوثيقه؟':'هل أنت متأكد من رفض طلب التوثيق؟';
   if(!confirm(msg))return;
   document.getElementById('approveBtn').disabled=true;document.getElementById('rejectBtn').disabled=true;
-  const update={status,admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id};
-  if(status==='rejected')update.rejection_reason=notes;
-  const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
-  if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
-  if(status==='approved'){
-    const {error:e2}=await sb.from('players').update({verified:true,verified_at:new Date().toISOString()}).eq('user_id',selectedRequest.user_id);
-    if(e2){alert('تم قبول الطلب لكن تعذر تحديث حالة اللاعب: '+e2.message+'\nراجع RLS وسياسة تحديث players.');return;}
-  }else{
-    const {error:e3}=await sb.from('players').update({verified:false,verified_at:null}).eq('user_id',selectedRequest.user_id);
-    if(e3)console.warn('Could not reset player verification:',e3);
+  // يتم تنفيذ القبول/الرفض داخل دالة PostgreSQL آمنة وذرّية حتى لا يحدث
+  // قبول للطلب دون تحديث ملف اللاعب أو العكس. الدالة تتحقق من صلاحية admin.
+  const {data:result,error:e1}=await sb.rpc('admin_review_verification_request',{
+    p_request_id:selectedRequest.id,
+    p_status:status,
+    p_admin_notes:notes
+  });
+  if(e1){
+    alert('تعذر مراجعة الطلب: '+e1.message);
+    document.getElementById('approveBtn').disabled=false;
+    document.getElementById('rejectBtn').disabled=false;
+    return;
   }
-  document.getElementById('modalOverlay').classList.remove('show');await loadRequests();
+  if(!result?.success){
+    alert('تعذر إكمال العملية: '+(result?.message||'خطأ غير معروف'));
+    document.getElementById('approveBtn').disabled=false;
+    document.getElementById('rejectBtn').disabled=false;
+    return;
+  }
+  document.getElementById('modalOverlay').classList.remove('show');
+  await loadRequests();
+  await loadBadgeManager();
 }
 document.getElementById('approveBtn').onclick=()=>review('approved');document.getElementById('rejectBtn').onclick=()=>review('rejected');document.getElementById('closeModal').onclick=()=>document.getElementById('modalOverlay').classList.remove('show');document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show')};document.getElementById('refreshBtn').onclick=()=>loadRequests();document.getElementById('backBtn').onclick=()=>location.href='index.html';document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modalOverlay').classList.remove('show')});load();
 </script>

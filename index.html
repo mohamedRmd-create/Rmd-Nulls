@@ -1198,7 +1198,7 @@ function findPlayerInCache(key){
 }
 
 // الحقول الآمنة والعامة فقط المسموح عرضها داخل الـ Profile (لا بريد إلكتروني ولا بيانات مصادقة)
-const PROFILE_SAFE_FIELDS = ["id","user_id","username","clan","trophies","wins","best_trophies","created_at","avatar_url","verified"];
+const PROFILE_SAFE_FIELDS = ["id","user_id","username","clan","trophies","wins","best_trophies","created_at","avatar_url","verified","verified_at","player_tag","social_username","account_created_date"];
 function pickSafeFields(row){
   const out = {};
   PROFILE_SAFE_FIELDS.forEach(k => { if(row[k] !== undefined) out[k] = row[k]; });
@@ -1299,6 +1299,9 @@ function renderProfileContent(p){
     ? `<img src="${escapeHtml(p.avatar_url)}" alt="${name}">`
     : "🎮";
   const joinDate = formatJoinDate(p.created_at);
+  const gameCreatedDate = p.account_created_date ? formatJoinDate(p.account_created_date) : null;
+  const playerTag = p.player_tag ? escapeHtml(String(p.player_tag)) : null;
+  const socialUsername = p.social_username ? escapeHtml(String(p.social_username)) : null;
 
   // نبني بطاقات الإحصائيات فقط للحقول المتوفرة فعلياً — بدون أرقام وهمية لأي حقل غير موجود
   const statCards = [];
@@ -1307,8 +1310,11 @@ function renderProfileContent(p){
     statCards.push({ ic:"🔥", val:Number(p.best_trophies).toLocaleString("en-US"), lbl:"أعلى كؤوس" });
   }
   statCards.push({ ic:"⚔️", val:(p.wins ?? 0).toLocaleString("en-US"), lbl:"الانتصارات" });
+  if(gameCreatedDate){
+    statCards.push({ ic:"📅", val:gameCreatedDate, lbl:"تاريخ إنشاء الحساب" });
+  }
   if(joinDate){
-    statCards.push({ ic:"📅", val:joinDate, lbl:"تاريخ الانضمام" });
+    statCards.push({ ic:"🗓️", val:joinDate, lbl:"تاريخ الانضمام للموقع" });
   }
 
   const statsHtml = statCards.map(s => `
@@ -1331,7 +1337,8 @@ function renderProfileContent(p){
     <div class="pm-head">
       <div class="pm-avatar hex">${avatar}</div>
       <div class="pm-name" id="pmName">${name}</div>
-      <div class="pm-tag">#${escapeHtml(String(p.id ?? p.user_id ?? ""))}</div>
+      ${playerTag ? `<div class="pm-tag" dir="ltr">${playerTag}</div>` : ''}
+      ${socialUsername ? `<div style="margin-top:6px;font-size:11px;color:var(--ink-soft);font-weight:800;direction:ltr">${socialUsername}</div>` : ''}
       ${p.verified ? '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:#E8FAF2;color:#149E77;border:1px solid #BFEAD6;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;">✓ موثق</div>' : ''}
       ${clan}
     </div>
