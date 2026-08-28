@@ -538,6 +538,9 @@
           <div class="acct-item" id="acctVerifyItem" role="menuitem" tabindex="0">
             <span class="ic">🛡️</span><span>التحقق من الحساب</span>
           </div>
+          <div class="acct-item" id="acctAdminItem" role="menuitem" tabindex="0" style="display:none;">
+            <span class="ic">⚙️</span><span>لوحة الإدارة</span>
+          </div>
         </div>
       </div>
     </div>
@@ -934,6 +937,7 @@ async function handleLogout(){
   try{ if(sb) await sb.auth.signOut(); }catch(e){}
   pendingSignup = null;
   verifiedUserId = null;
+  updateAdminMenu(null);
   localStorage.removeItem(PENDING_KEY);
   setStep(1);
   document.getElementById("regUsername").value = "";
@@ -968,10 +972,20 @@ if(sb){
     try{ pendingSignup = JSON.parse(stored); }catch(e){}
   }
 
+  sb.auth.getSession().then(({ data }) => {
+    if(data && data.session && data.session.user){
+      verifiedUserId = data.session.user.id;
+      updateAdminMenu(data.session.user);
+    }
+  });
+
   sb.auth.onAuthStateChange((event, session) => {
     if(session && session.user){
       verifiedUserId = session.user.id;
+      updateAdminMenu(session.user);
       findOrCreatePlayer(session.user.id);
+    }else{
+      updateAdminMenu(null);
     }
   });
 }
@@ -981,6 +995,7 @@ async function loadDashboard(){
   const { data, error } = await sb
     .from("players")
     .select("*")
+    .eq("verified", true)
     .order("trophies", { ascending:false });
 
   if(error){
@@ -1060,7 +1075,7 @@ function findPlayerInCache(key){
 }
 
 // الحقول الآمنة والعامة فقط المسموح عرضها داخل الـ Profile (لا بريد إلكتروني ولا بيانات مصادقة)
-const PROFILE_SAFE_FIELDS = ["id","username","clan","trophies","wins","best_trophies","created_at","avatar_url"];
+const PROFILE_SAFE_FIELDS = ["id","username","clan","trophies","wins","best_trophies","created_at","avatar_url","verified"];
 function pickSafeFields(row){
   const out = {};
   PROFILE_SAFE_FIELDS.forEach(k => { if(row[k] !== undefined) out[k] = row[k]; });
@@ -1196,6 +1211,7 @@ function renderProfileContent(p){
       <div class="pm-avatar hex">${avatar}</div>
       <div class="pm-name" id="pmName">${name}</div>
       <div class="pm-tag">#${escapeHtml(String(p.id ?? p.user_id ?? ""))}</div>
+      ${p.verified ? '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:#E8FAF2;color:#149E77;border:1px solid #BFEAD6;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;">✓ موثق</div>' : ''}
       ${clan}
     </div>
     <div class="pm-body">
@@ -1275,6 +1291,22 @@ function toggleAcctDropdown(e){
 }
 
 // فتح صفحة "التحقق من الحساب" — إذا لم تكن هناك جلسة فعلية، لا نعرض خيارات حساب غير موجود
+function isAdminUser(user){
+  return !!(user && user.app_metadata && user.app_metadata.role === "admin");
+}
+
+function updateAdminMenu(user){
+  const item = document.getElementById("acctAdminItem");
+  if(!item) return;
+  item.style.display = isAdminUser(user) ? "flex" : "none";
+}
+
+function openAdminPage(){
+  closeAcctDropdown();
+  closeMobileMenu();
+  window.location.href = "admin.html";
+}
+
 function openVerifyPage(){
   closeAcctDropdown();
   closeMobileMenu();
@@ -1305,6 +1337,12 @@ try{
   verifyItem.addEventListener("click", openVerifyPage);
   verifyItem.addEventListener("keydown", function(e){
     if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openVerifyPage(); }
+  });
+
+  const adminItem = document.getElementById("acctAdminItem");
+  adminItem.addEventListener("click", openAdminPage);
+  adminItem.addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openAdminPage(); }
   });
 
   document.getElementById("verifyBackBtn").addEventListener("click", function(){

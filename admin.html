@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإدارة - Rmd Null</title>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F3FF;--surface:#fff;--ink:#241748;--ink-soft:#6C63A6;--primary:#7C4DFF;--primary-deep:#5B32D6;--yellow:#FFC93C;--green:#149E77;--red:#D6336C;--orange:#B87A00;--border:#E7E0FF;--shadow:0 10px 30px rgba(124,77,255,.10)}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:Cairo,sans-serif;background:radial-gradient(circle at 15% 10%,#EFE9FF 0%,transparent 40%),radial-gradient(circle at 90% 0%,#FFF2D9 0%,transparent 35%),var(--bg);color:var(--ink);min-height:100vh}h1,h2,h3{font-family:Lalezar,Cairo,sans-serif}.wrap{max-width:1250px;margin:auto;padding:22px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:18px 22px;box-shadow:var(--shadow);margin-bottom:20px}.brand{display:flex;align-items:center;gap:12px}.logo{width:48px;height:55px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,var(--primary),var(--primary-deep));color:#fff;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);font-size:22px;font-weight:900}.brand h1{font-size:25px}.brand p{font-size:11px;color:var(--ink-soft)}.top-actions{display:flex;gap:9px}.btn{border:0;border-radius:13px;padding:10px 16px;font:800 12px Cairo;cursor:pointer}.btn.secondary{background:#F2EEFF;color:var(--primary-deep)}.btn.primary{background:linear-gradient(145deg,var(--primary),var(--primary-deep));color:#fff}.btn.green{background:#E8FAF2;color:var(--green)}.btn.red{background:#FFF0F4;color:var(--red)}.toolbar{display:grid;grid-template-columns:1fr 180px 150px;gap:12px;margin-bottom:16px}.field{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:11px 13px;font:700 12px Cairo;color:var(--ink);outline:none;width:100%}.panel{background:var(--surface);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}.panel-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}.panel-head h2{font-size:21px}.count{font-size:11px;font-weight:900;background:#F2EEFF;color:var(--primary-deep);padding:6px 10px;border-radius:999px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:950px}th,td{padding:13px 12px;text-align:right;border-bottom:1px solid #F0ECFA;font-size:11.5px;vertical-align:middle}th{font-weight:900;color:var(--ink-soft);background:#FBFAFF}td{font-weight:600}.user{font-weight:900;font-size:12px}.sub{font-size:10px;color:var(--ink-soft);direction:ltr;text-align:right;margin-top:2px}.status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900}.pending{background:#FFF7DD;color:var(--orange)}.approved{background:#E8FAF2;color:var(--green)}.rejected{background:#FFF0F4;color:var(--red)}.actions{display:flex;gap:6px;flex-wrap:wrap}.empty,.loading,.denied{padding:55px 20px;text-align:center;color:var(--ink-soft)}.empty h3,.loading h3,.denied h3{font-size:22px;color:var(--ink);margin-bottom:7px}.modal-overlay{position:fixed;inset:0;background:rgba(30,20,55,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal-overlay.show{display:flex}.modal{width:min(850px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:26px;box-shadow:0 30px 80px rgba(20,10,50,.3)}.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}.close{border:0;background:#F2EEFF;color:var(--primary-deep);width:38px;height:38px;border-radius:12px;cursor:pointer;font-weight:900}.details{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}.detail{background:#FAF8FF;border:1px solid var(--border);border-radius:15px;padding:12px}.detail label{display:block;color:var(--ink-soft);font-size:10px;font-weight:800;margin-bottom:4px}.detail div{font-size:13px;font-weight:900;word-break:break-word}.proof{grid-column:1/-1;text-align:center}.proof img{max-width:100%;max-height:480px;object-fit:contain;border-radius:16px;border:1px solid var(--border);background:#FAF8FF}.notes{grid-column:1/-1}.notes textarea{min-height:100px;resize:vertical}.modal-actions{padding:0 20px 20px;display:flex;gap:10px}.modal-actions .btn{flex:1}.notice{margin:0 20px 18px;padding:12px 14px;border-radius:14px;font-size:11px;font-weight:700;line-height:1.7}.notice.info{background:#F2EEFF;color:var(--primary-deep)}.notice.err{background:#FFF0F4;color:var(--red)}@media(max-width:760px){.wrap{padding:12px}.top{padding:15px;border-radius:19px;align-items:flex-start}.brand h1{font-size:21px}.top-actions{flex-direction:column}.toolbar{grid-template-columns:1fr}.details{grid-template-columns:1fr}.proof,.notes{grid-column:auto}.modal-actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">R</div><div><h1>لوحة الإدارة</h1><p>Rmd Null — إدارة طلبات التوثيق</p></div></div>
+    <div class="top-actions"><button class="btn secondary" id="refreshBtn">↻ تحديث</button><button class="btn secondary" id="backBtn">← الموقع</button></div>
+  </header>
+  <div id="pageState" class="panel"><div class="loading"><h3>جارِ التحقق...</h3><p>يتم التأكد من صلاحيات المشرف.</p></div></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h2 id="modalTitle">تفاصيل الطلب</h2><button class="close" id="closeModal">✕</button></div>
+    <div id="modalNotice"></div>
+    <div class="details" id="modalDetails"></div>
+    <div class="modal-actions"><button class="btn green" id="approveBtn">✓ قبول التوثيق</button><button class="btn red" id="rejectBtn">✕ رفض التوثيق</button></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://xymxdprcbgdgedrzoryo.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Fyk5kX_1zrd_0Oqg0pMVGw_hL2rWx_G";
+const VERIFY_BUCKET = "verification-docs";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser=null, requests=[], playersByUser={}, selectedRequest=null;
+const esc=s=>(s??"").toString().replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function isAdmin(user){return !!(user?.app_metadata?.role === "admin");}
+function statusLabel(s){return s==='approved'?'موثق':s==='rejected'?'مرفوض':'قيد المراجعة'}
+function statusClass(s){return s==='approved'?'approved':s==='rejected'?'rejected':'pending'}
+function fmtDate(v){if(!v)return '—';try{return new Intl.DateTimeFormat('ar',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return v}}
+function renderShell(){document.getElementById('pageState').innerHTML=`<div class="toolbar"><input class="field" id="search" placeholder="ابحث باسم اللاعب أو Player Tag أو اليوزر الاجتماعي..."><select class="field" id="statusFilter"><option value="all">كل الطلبات</option><option value="pending">قيد المراجعة</option><option value="approved">موثق</option><option value="rejected">مرفوض</option></select><select class="field" id="sortOrder"><option value="desc">الأحدث أولاً</option><option value="asc">الأقدم أولاً</option></select></div><section class="panel"><div class="panel-head"><h2>طلبات التوثيق</h2><span class="count" id="count">0</span></div><div id="tableArea"></div></section>`;document.getElementById('search').oninput=renderTable;document.getElementById('statusFilter').onchange=renderTable;document.getElementById('sortOrder').onchange=renderTable;}
+async function load(){
+  const {data:userData,error:userErr}=await sb.auth.getUser();
+  if(userErr||!userData.user){deny('يجب تسجيل الدخول أولاً بحساب المشرف.');return;}
+  currentUser=userData.user;
+  if(!isAdmin(currentUser)){deny('هذا الحساب لا يملك صلاحية المشرف.');return;}
+  renderShell();
+  await loadRequests();
+}
+function deny(msg){document.getElementById('pageState').innerHTML=`<div class="denied"><div style="font-size:42px;margin-bottom:8px">🔒</div><h3>غير مصرح</h3><p>${esc(msg)}</p><button class="btn primary" style="margin-top:15px" onclick="location.href='index.html'">العودة للموقع</button></div>`}
+async function loadRequests(){
+  document.getElementById('tableArea').innerHTML='<div class="loading"><h3>جارِ تحميل الطلبات...</h3></div>';
+  const {data,error}=await sb.from('verification_requests').select('*').order('created_at',{ascending:false});
+  if(error){document.getElementById('tableArea').innerHTML=`<div class="denied"><h3>تعذر تحميل الطلبات</h3><p>${esc(error.message)}</p><p style="margin-top:8px">تأكد من تنفيذ ملف SQL المرفق بالمشروع.</p></div>`;return;}
+  requests=data||[];
+  const ids=[...new Set(requests.map(r=>r.user_id).filter(Boolean))]; playersByUser={};
+  if(ids.length){const {data:players}=await sb.from('players').select('user_id,username,clan,trophies,wins,best_trophies,verified').in('user_id',ids);(players||[]).forEach(p=>playersByUser[p.user_id]=p)}
+  renderTable();
+}
+function renderTable(){
+  if(!document.getElementById('tableArea'))return;
+  const q=(document.getElementById('search')?.value||'').trim().toLowerCase(), f=document.getElementById('statusFilter')?.value||'all', order=document.getElementById('sortOrder')?.value||'desc';
+  let list=requests.filter(r=>f==='all'||r.status===f).filter(r=>{const p=playersByUser[r.user_id]||{};return !q||(String(p.username||'')+' '+String(r.player_tag||'')+' '+String(r.social_username||'')).toLowerCase().includes(q)});
+  list.sort((a,b)=>order==='desc'?new Date(b.created_at)-new Date(a.created_at):new Date(a.created_at)-new Date(b.created_at));
+  document.getElementById('count').textContent=list.length;
+  if(!list.length){document.getElementById('tableArea').innerHTML='<div class="empty"><div style="font-size:38px">📭</div><h3>لا توجد طلبات</h3><p>ستظهر طلبات التوثيق هنا عند إرسالها.</p></div>';return;}
+  document.getElementById('tableArea').innerHTML=`<div class="table-wrap"><table><thead><tr><th>اللاعب</th><th>Player Tag</th><th>الانتصارات</th><th>تاريخ إنشاء الحساب</th><th>الحالة</th><th>تاريخ الطلب</th><th>إجراء</th></tr></thead><tbody>${list.map(r=>{const p=playersByUser[r.user_id]||{};return `<tr><td><div class="user">${esc(p.username||'غير معروف')}</div><div class="sub">${esc(r.social_username||'—')}</div></td><td dir="ltr" style="text-align:right">${esc(r.player_tag||'—')}</td><td>${Number(r.wins||0).toLocaleString('en-US')}</td><td>${esc(r.account_created_date||'—')}</td><td><span class="status ${statusClass(r.status)}">${statusLabel(r.status)}</span></td><td>${esc(fmtDate(r.created_at))}</td><td><div class="actions"><button class="btn primary" onclick="openRequest('${esc(r.id)}')">عرض ومراجعة</button></div></td></tr>`}).join('')}</tbody></table></div>`;
+}
+async function openRequest(id){
+  selectedRequest=requests.find(r=>String(r.id)===String(id));if(!selectedRequest)return;
+  const p=playersByUser[selectedRequest.user_id]||{};
+  document.getElementById('modalTitle').textContent='مراجعة طلب: '+(p.username||'لاعب');
+  document.getElementById('modalNotice').innerHTML='';
+  let imageHtml='<div class="proof"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">صورة الحساب</label><div style="padding:25px;color:#6C63A6">جارِ تحميل الصورة...</div></div>';
+  document.getElementById('modalDetails').innerHTML=`<div class="detail"><label>اسم اللاعب</label><div>${esc(p.username||'—')}</div></div><div class="detail"><label>User ID</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.user_id||'—')}</div></div><div class="detail"><label>عدد الانتصارات</label><div>${Number(selectedRequest.wins||0).toLocaleString('en-US')}</div></div><div class="detail"><label>تاريخ إنشاء الحساب</label><div>${esc(selectedRequest.account_created_date||'—')}</div></div><div class="detail"><label>Player Tag</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.player_tag||'—')}</div></div><div class="detail"><label>اليوزر الاجتماعي</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.social_username||'—')}</div></div><div class="detail"><label>حالة الطلب</label><div><span class="status ${statusClass(selectedRequest.status)}">${statusLabel(selectedRequest.status)}</span></div></div><div class="detail"><label>تاريخ إرسال الطلب</label><div>${esc(fmtDate(selectedRequest.created_at))}</div></div>${imageHtml}<div class="notes"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">ملاحظات المشرف</label><textarea class="field" id="adminNotes" placeholder="اكتب ملاحظاتك هنا..."></textarea></div>`;
+  document.getElementById('approveBtn').style.display=selectedRequest.status==='approved'?'none':'block';document.getElementById('rejectBtn').style.display=selectedRequest.status==='rejected'?'none':'block';
+  document.getElementById('modalOverlay').classList.add('show');
+  if(selectedRequest.proof_image_path){const {data,error}=await sb.storage.from(VERIFY_BUCKET).createSignedUrl(selectedRequest.proof_image_path,300);const proof=document.querySelector('.proof');if(error){proof.innerHTML='<label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">صورة الحساب</label><div style="padding:25px;color:#D6336C">تعذر عرض الصورة: '+esc(error.message)+'</div>'}else{proof.innerHTML='<label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">صورة الحساب</label><img src="'+esc(data.signedUrl)+'" alt="صورة التوثيق">'}}
+}
+async function review(status){
+  if(!selectedRequest)return;
+  const notes=document.getElementById('adminNotes')?.value?.trim()||null;
+  const msg=status==='approved'?'هل أنت متأكد من قبول هذا الحساب وتوثيقه؟':'هل أنت متأكد من رفض طلب التوثيق؟';
+  if(!confirm(msg))return;
+  document.getElementById('approveBtn').disabled=true;document.getElementById('rejectBtn').disabled=true;
+  const update={status,admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id};
+  if(status==='rejected')update.rejection_reason=notes;
+  const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
+  if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
+  if(status==='approved'){
+    const {error:e2}=await sb.from('players').update({verified:true,verified_at:new Date().toISOString()}).eq('user_id',selectedRequest.user_id);
+    if(e2){alert('تم قبول الطلب لكن تعذر تحديث حالة اللاعب: '+e2.message+'\nراجع RLS وسياسة تحديث players.');return;}
+  }else{
+    const {error:e3}=await sb.from('players').update({verified:false,verified_at:null}).eq('user_id',selectedRequest.user_id);
+    if(e3)console.warn('Could not reset player verification:',e3);
+  }
+  document.getElementById('modalOverlay').classList.remove('show');await loadRequests();
+}
+document.getElementById('approveBtn').onclick=()=>review('approved');document.getElementById('rejectBtn').onclick=()=>review('rejected');document.getElementById('closeModal').onclick=()=>document.getElementById('modalOverlay').classList.remove('show');document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show')};document.getElementById('refreshBtn').onclick=()=>loadRequests();document.getElementById('backBtn').onclick=()=>location.href='index.html';document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modalOverlay').classList.remove('show')});load();
+</script>
+</body>
+</html>
