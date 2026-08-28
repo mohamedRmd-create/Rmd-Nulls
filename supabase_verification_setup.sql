@@ -235,3 +235,80 @@ drop trigger if exists protect_player_verification on public.players;
 create trigger protect_player_verification
 before update on public.players
 for each row execute function public.protect_player_verification();
+
+
+-- 11) Badge system used by the public site and Admin Dashboard.
+-- Safe to run even if these objects already exist.
+create table if not exists public.badges (
+  id text primary key,
+  name text not null,
+  icon text not null,
+  title text not null,
+  created_at timestamptz not null default now()
+);
+
+insert into public.badges (id,name,icon,title) values
+('season_champion','بطل الموسم','🏆','بطل الموسم'),
+('thousand_wins','ألف انتصار','⚔️','محارب الألف'),
+('arena_legend','أسطورة الحلبة','👑','أسطورة الحلبة'),
+('star_hunter','صياد النجوم','🌟','صياد النجوم'),
+('invincible_castle','قلعة لا تُقهر','🏰','حامي القلعة'),
+('lightning_speed','سرعة البرق','⚡','البرق'),
+('chest_king','ملك السحب','🎁','ملك السحب'),
+('clan_leader','قائد الكلان','🎖️','قائد الكلان')
+on conflict (id) do update set name=excluded.name, icon=excluded.icon, title=excluded.title;
+
+create table if not exists public.player_badges (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  badge_id text not null references public.badges(id) on delete cascade,
+  earned_at timestamptz not null default now(),
+  primary key (user_id, badge_id)
+);
+
+alter table public.badges enable row level security;
+alter table public.player_badges enable row level security;
+
+drop policy if exists "badges_public_read" on public.badges;
+create policy "badges_public_read"
+on public.badges for select
+using (true);
+
+drop policy if exists "player_badges_public_read" on public.player_badges;
+create policy "player_badges_public_read"
+on public.player_badges for select
+using (true);
+
+-- Only the database function can grant badges. There is intentionally no
+-- direct INSERT policy for normal users.
+create or replace function public.admin_award_badge(
+  p_user_id uuid,
+  p_badge_id text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only admins can award badges';
+  end if;
+
+  if not exists (select 1 from public.players where user_id = p_user_id) then
+    raise exception 'Player not found';
+  end if;
+
+  if not exists (select 1 from public.badges where id = p_badge_id) then
+    raise exception 'Badge not found';
+  end if;
+
+  insert into public.player_badges(user_id,badge_id)
+  values(p_user_id,p_badge_id)
+  on conflict (user_id,badge_id) do nothing;
+
+  return jsonb_build_object('success',true,'user_id',p_user_id,'badge_id',p_badge_id);
+end;
+$$;
+
+revoke all on function public.admin_award_badge(uuid,text) from public;
+grant execute on function public.admin_award_badge(uuid,text) to authenticated;
