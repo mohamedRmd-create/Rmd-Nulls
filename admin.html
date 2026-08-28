@@ -56,7 +56,7 @@ async function loadBadgeManager(){
   const b=await sb.from('badges').select('id,name,icon,title').order('name');
   if(b.error){console.warn(b.error);return;}
   badgeDefs=b.data||[];
-  const p=await sb.from('players').select('user_id,username,trophies,wins,verified').eq('verified',true).order('username');
+  const p=await sb.from('players').select('user_id,username,trophies,wins,verified').order('username');
   if(p.error){console.warn(p.error);return;}
   verifiedPlayers=p.data||[];
   const ps=document.getElementById('badgePlayerSelect'), bs=document.getElementById('badgeSelect');
