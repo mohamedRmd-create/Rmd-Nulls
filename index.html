@@ -562,6 +562,10 @@
   .season-rank-num{font-family:'Lalezar';font-size:17px;color:var(--primary-deep)}.season-achievements{display:flex;flex-wrap:wrap;gap:4px}.season-achievement{background:#F2EEFF;color:var(--primary-deep);padding:3px 7px;border-radius:999px;font-size:9px;font-weight:800}
   .season-empty{text-align:center;padding:28px;color:var(--ink-soft)}
   @media(max-width:760px){.season-leaders{grid-template-columns:1fr}.season-card{padding:17px}.season-countdown{width:100%}}
+
+
+.player-refresh-clock{margin-right:auto;min-width:108px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.72);white-space:nowrap}.refresh-countdown{font-family:'Lalezar';font-size:16px;line-height:1;color:var(--primary-deep);direction:ltr;letter-spacing:.4px}.refresh-done{display:none;font-size:10px;font-weight:900;color:#168447;line-height:1.2}.player-refresh-clock.is-done .refresh-countdown{display:none}.player-refresh-clock.is-done .refresh-done{display:block}@media(max-width:600px){.data-refresh-notice{flex-wrap:wrap}.notice-copy{flex:1;min-width:180px}.player-refresh-clock{margin-right:0;margin-top:4px;min-width:98px}.refresh-countdown{font-size:14px}}
+.data-refresh-notice{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:13px 16px;border:1px solid var(--border);border-radius:16px;background:linear-gradient(135deg,#F7F3FF,#FFF);box-shadow:0 6px 20px rgba(80,55,130,.06)}.data-refresh-notice .notice-icon{font-size:22px}.data-refresh-notice strong{font-size:12px;font-weight:900;color:var(--ink)}.data-refresh-notice p{margin:3px 0 0;font-size:10px;line-height:1.7;color:var(--ink-soft)}@media(max-width:600px){.data-refresh-notice{align-items:flex-start}}
 </style>
 </head>
 <body>
@@ -702,6 +706,14 @@
       <!-- PLAYERS -->
       <section class="section" id="tab-players">
         <div class="page-head"><h2>تصنيف اللاعبين</h2><div class="sub">مباشر من قاعدة بيانات Supabase</div></div>
+        <div class="data-refresh-notice" role="status" aria-live="polite">
+          <span class="notice-icon">🔄</span>
+          <div class="notice-copy"><strong>تحديث معلومات اللاعبين كل 24 ساعة</strong><p>يتم تحديث معلومات اللاعبين بشكل دوري كل 24 ساعة، بما في ذلك الكؤوس، الكلان، الانتصارات، الرانك، والاسم أو اليوزر إذا تغيّر.</p></div>
+          <div class="player-refresh-clock" aria-label="الوقت المتبقي للتحديث">
+            <span class="refresh-countdown" id="playerRefreshCountdown">24:00:00</span>
+            <span class="refresh-done" id="playerRefreshDone">✓ تم تحديث المعلومات</span>
+          </div>
+        </div>
         <div class="player-filters">
           <div class="filter-field"><label class="filter-label">🔎 بحث عن لاعب</label><input class="player-filter" id="playerSearch" type="search" placeholder="اسم اللاعب أو الكلان..."></div>
           <div class="filter-field"><label class="filter-label">🏆 أقل عدد كؤوس</label><input class="player-filter" id="minTrophiesFilter" type="number" min="0" step="1" placeholder="مثال: 10000"></div>
@@ -1349,6 +1361,52 @@ function startSeasonCountdown(){
   const el=document.getElementById('seasonCountdown'); if(!el||!seasonSettings)return;
   const tick=()=>{const end=new Date(seasonSettings.ends_at); el.textContent=Date.now()>=end?'انتهى الموسم':seasonTimeLeft(end)};
   tick(); seasonCountdownTimer=setInterval(tick,1000);
+}
+
+/* ============================================================
+   مؤقت تحديث بيانات اللاعبين: دورة متكررة كل 24 ساعة.
+   عند انتهاء الدورة تظهر رسالة النجاح لمدة دقيقة ثم تبدأ دورة جديدة.
+   الوقت محفوظ محليًا حتى لا يعاد ضبطه عند إعادة تحميل الصفحة.
+   ============================================================ */
+const PLAYER_REFRESH_INTERVAL=24*60*60*1000;
+const PLAYER_REFRESH_DONE_MS=60*1000;
+const PLAYER_REFRESH_KEY='rmdnull_player_refresh_next_at_v1';
+let playerRefreshTimer=null;
+function startPlayerRefreshCountdown(){
+  const wrap=document.querySelector('.player-refresh-clock');
+  const el=document.getElementById('playerRefreshCountdown');
+  const done=document.getElementById('playerRefreshDone');
+  if(!wrap||!el||!done)return;
+  clearInterval(playerRefreshTimer);
+  let next=Number(localStorage.getItem(PLAYER_REFRESH_KEY)||0);
+  if(!next || !Number.isFinite(next)){
+    next=Date.now()+PLAYER_REFRESH_INTERVAL;
+    localStorage.setItem(PLAYER_REFRESH_KEY,String(next));
+  }
+  const pad=n=>String(Math.max(0,n)).padStart(2,'0');
+  const tick=()=>{
+    const remaining=next-Date.now();
+    if(remaining<=0){
+      wrap.classList.add('is-done');
+      done.textContent='✓ تم تحديث المعلومات';
+      // تبدأ دورة جديدة بعد دقيقة، مع إبقاء علامة النجاح ظاهرة طوال الدقيقة.
+      if(!wrap.dataset.doneAt)wrap.dataset.doneAt=String(Date.now());
+      if(Date.now()-Number(wrap.dataset.doneAt)>=PLAYER_REFRESH_DONE_MS){
+        next=Date.now()+PLAYER_REFRESH_INTERVAL;
+        localStorage.setItem(PLAYER_REFRESH_KEY,String(next));
+        delete wrap.dataset.doneAt;
+        wrap.classList.remove('is-done');
+      }
+      return;
+    }
+    const totalSec=Math.ceil(remaining/1000);
+    const h=Math.floor(totalSec/3600);
+    const m=Math.floor((totalSec%3600)/60);
+    const sec=totalSec%60;
+    el.textContent=pad(h)+':'+pad(m)+':'+pad(sec);
+  };
+  tick();
+  playerRefreshTimer=setInterval(tick,1000);
 }
 async function loadSeasonData(){
   if(!sb)return;
@@ -2092,5 +2150,7 @@ async function submitVerificationRequest(){
   }
 }
 </script>
+
+<script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
 </body>
 </html>
