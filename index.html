@@ -180,6 +180,32 @@
   .clan-stats{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); margin-top:12px; }
   .clan-stats b{ display:block; color:var(--ink); font-family:'Lalezar'; font-size:16px; }
 
+
+  .clan-card{cursor:pointer;position:relative;overflow:hidden;}
+  .clan-card::after{content:"›";position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:24px;color:var(--ink-soft);opacity:.45;}
+  .clan-card:hover::after{opacity:1;color:var(--primary);}
+  .clan-logo{width:46px;height:52px;display:flex;align-items:center;justify-content:center;font-size:21px;color:#fff;background:linear-gradient(145deg,var(--primary),var(--primary-deep));clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%);overflow:hidden;}
+  .clan-logo img{width:100%;height:100%;object-fit:cover;}
+  .overview-clans-empty{padding:30px;text-align:center;color:var(--ink-soft);border:1px dashed var(--border);border-radius:18px;}
+  .podium .p-slot{cursor:pointer;transition:.22s;position:relative;border-radius:18px;padding:8px;}
+  .podium .p-slot:hover{transform:translateY(-5px);}
+  .podium .p-slot.p1{background:linear-gradient(145deg,rgba(255,215,80,.22),rgba(255,170,0,.07));}
+  .podium .p-slot.p2{background:linear-gradient(145deg,rgba(210,220,245,.30),rgba(130,145,190,.08));}
+  .podium .p-slot.p3{background:linear-gradient(145deg,rgba(240,180,140,.24),rgba(210,130,80,.08));}
+  .clan-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0;}
+  .clan-detail-stat{background:var(--surface-soft,#F8F5FF);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;}
+  .clan-detail-stat small{display:block;color:var(--ink-soft);font-size:10px;margin-bottom:4px;}
+  .clan-detail-stat b{font-family:'Lalezar';font-size:17px;}
+  .clan-member-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F2EEFF;cursor:pointer;border-radius:10px;}
+  .clan-member-row:hover{background:#F7F3FF;}
+  .clan-member-rank{font-family:'Lalezar';width:30px;color:var(--ink-soft);}
+  .clan-modal-head{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+  .clan-modal-logo{width:68px;height:76px;display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;clip-path:polygon(25% 4%,75% 4%,100% 50%,75% 96%,25% 96%,0 50%);background:linear-gradient(145deg,var(--primary),var(--primary-deep));overflow:hidden;flex:none;}
+  .clan-modal-logo img{width:100%;height:100%;object-fit:cover;}
+  .clan-modal-members{max-height:300px;overflow:auto;border:1px solid var(--border);border-radius:15px;background:var(--surface);}
+  .clan-modal-empty{padding:24px;text-align:center;color:var(--ink-soft);}
+  @media(max-width:800px){.clan-detail-grid{grid-template-columns:repeat(2,1fr)}}
+
   .badge-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
   .badge-card{ background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:20px; text-align:center; box-shadow:var(--shadow); transition:.25s; position:relative; overflow:hidden;}
   .badge-card:hover{ transform:translateY(-5px) rotate(-1deg); }
@@ -398,31 +424,24 @@
   }
   .acct-item:hover, .acct-item:focus-visible{ background:#F5F1FF; color:var(--primary-deep); outline:none; }
   .acct-item .ic{ font-size:16px; }
-  .appearance-mini{position:relative;display:inline-block;width:42px;height:42px;flex:0 0 42px;vertical-align:middle;}
-  .appearance-mini .appearance-avatar,.appearance-mini .appearance-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;}
-  .appearance-mini .appearance-avatar{z-index:1;} .appearance-mini .appearance-frame{z-index:2;}
   .appearance-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
   .appearance-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:14px;box-shadow:var(--shadow);text-align:center;cursor:pointer;transition:.18s;position:relative;}
   .appearance-card:hover{transform:translateY(-3px);border-color:#CFC2FF;}
   .appearance-card.selected{outline:3px solid rgba(124,77,255,.18);border-color:var(--primary);}
   .appearance-card.locked{opacity:.45;filter:grayscale(.55);cursor:not-allowed;}
-  .appearance-preview{width:120px;height:120px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;position:relative;}
-  .appearance-preview img{width:120px;height:120px;object-fit:contain;display:block;}
-  /* The supplied artwork already contains the correct hex geometry and transparency.
-     Do not apply another CSS hex clip-path; it crops the artwork and makes frames misalign. */
-  .appearance-preview .avatar-art{position:absolute;inset:0;z-index:1;pointer-events:none;}
-  .appearance-preview .frame-ring{position:absolute;inset:0;width:120px;height:120px;object-fit:contain;pointer-events:none;z-index:2;clip-path:none;}
+  .appearance-preview{width:90px;height:90px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;position:relative;}
+  .appearance-preview img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;}
+  /* Avatar selection: show the avatar by itself. Frames are previewed only in the Frames tab. */
+  .appearance-preview .frame-ring{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2;}
   .appearance-name{font-weight:900;font-size:11px;color:var(--ink);}
   .appearance-hint{font-size:9px;color:var(--ink-soft);margin-top:3px;}
   .appearance-tabs{display:flex;gap:8px;margin-top:16px;}
   .appearance-tab{flex:1;border:1px solid var(--border);background:#FAF8FF;color:var(--ink-soft);border-radius:12px;padding:10px;font:800 12px Cairo;cursor:pointer;}
   .appearance-tab.active{background:#F0EAFF;color:var(--primary-deep);border-color:#CFC2FF;}
   .appearance-note{background:linear-gradient(160deg,#F2ECFF,#FFF9EA);border:1px solid var(--border);border-radius:18px;padding:14px 16px;font-size:11px;color:var(--ink-soft);line-height:1.8;margin-top:14px;}
-  .pm-avatar{position:relative;width:128px;height:128px;overflow:visible;clip-path:none;background:none;box-shadow:none;}
-  .pm-avatar img.pm-avatar-image{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:contain;display:block;clip-path:none;border-radius:0;}
-  /* Supplied frames are transparent overlays. Keep their complete canvas so the R, stars,
-     lightning and flames remain visible instead of being cropped by the old hex mask. */
-  .pm-avatar .pm-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2;clip-path:none;display:block;}
+  .pm-avatar{position:relative;width:96px;height:auto;aspect-ratio:var(--frame-ar, 0.833);overflow:visible;background:none;box-shadow:none;}
+  .pm-avatar img.pm-avatar-image{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1;object-fit:cover;border-radius:0;}
+  .pm-avatar .pm-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2;}
   .pm-badge .pb-ic{box-shadow:0 6px 15px rgba(255,174,0,.18);}
   .pm-badge .pb-ic.hex{clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
   .pm-badges.luxe{padding:12px;border-radius:18px;background:radial-gradient(circle at 50% 0,#FFF4C9,transparent 58%),#FBFAFF;border:1px solid #F0D98B;box-shadow:inset 0 0 0 1px rgba(255,201,60,.15),0 10px 25px rgba(255,201,60,.12);}
@@ -435,7 +454,7 @@
   .player-badges-inline{display:flex;align-items:center;gap:4px;min-width:0;}
   .player-badges-inline .more{font-size:9px;font-weight:900;color:var(--primary-deep);}
   @media(max-width:900px){.appearance-grid{grid-template-columns:repeat(3,1fr);}}
-  @media(max-width:640px){.appearance-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.appearance-card{padding:11px;}.appearance-preview{width:96px;height:96px;}.appearance-preview img,.appearance-preview .frame-ring{width:96px;height:96px;}.player-badge-mini{width:24px;height:28px;font-size:12px;}}
+  @media(max-width:640px){.appearance-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.appearance-card{padding:11px;}.appearance-preview{width:78px;height:78px;}.appearance-preview .frame-ring{width:100%;height:100%;}.player-badge-mini{width:24px;height:28px;font-size:12px;}}
 
   .verify-back{
     display:inline-flex; align-items:center; gap:8px; background:#F5F1FF; color:var(--ink-soft);
@@ -619,7 +638,7 @@
       </div>
       <div class="acct-menu-wrap">
         <div class="user-chip" id="userChipBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="حساب المستخدم">
-          <div id="loggedAppearance" class="appearance-mini" aria-hidden="true"><img class="appearance-avatar" src="assets/avatars/ps4_controller.png" alt=""></div>
+          <div class="hex">👤</div>
           <span id="loggedUsername">لاعب</span>
         </div>
         <div class="acct-dropdown" id="acctDropdown" role="menu">
@@ -652,9 +671,9 @@
         </div>
 
         <div class="panel">
-          <div class="panel-head"><h3>أعلى الكلانات (تجريبي)</h3></div>
-          <div class="clan-grid">
-            <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🛡️</div><div><div class="clan-name">أساطير الحلبة</div><div class="clan-tag">#LEGND2026</div></div></div><div class="clan-stats"><div>الترتيب<b>#1</b></div><div>الأعضاء<b>47/50</b></div><div>الكؤوس<b>912k</b></div></div></div>
+          <div class="panel-head"><h3>أعلى الكلانات</h3><span class="sub">من بيانات الموقع</span></div>
+          <div class="clan-grid" id="overviewClansGrid"><div class="overview-clans-empty">جارِ تحميل الكلانات...</div></div>
+        </div></div><div class="clan-stats"><div>الترتيب<b>#1</b></div><div>الأعضاء<b>47/50</b></div><div>الكؤوس<b>912k</b></div></div></div>
             <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦅</div><div><div class="clan-name">صقور البرق</div><div class="clan-tag">#FALCN99</div></div></div><div class="clan-stats"><div>الترتيب<b>#2</b></div><div>الأعضاء<b>50/50</b></div><div>الكؤوس<b>874k</b></div></div></div>
             <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🗡️</div><div><div class="clan-name">فرسان الصمت</div><div class="clan-tag">#SILNT01</div></div></div><div class="clan-stats"><div>الترتيب<b>#3</b></div><div>الأعضاء<b>45/50</b></div><div>الكؤوس<b>801k</b></div></div></div>
           </div>
@@ -684,14 +703,8 @@
 
       <!-- CLANS -->
       <section class="section" id="tab-clans">
-        <div class="page-head"><h2>تصنيف الكلانات</h2><div class="sub">بيانات تجريبية — يمكن ربطها بجدول Supabase لاحقاً بنفس الطريقة</div></div>
-        <div class="banner-note">هذه القائمة ثابتة حالياً. أخبرني إذا رغبت بإنشاء جدول clans وربطها بنفس الأسلوب.</div>
-        <div class="clan-grid">
-          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🛡️</div><div><div class="clan-name">أساطير الحلبة</div><div class="clan-tag">#LEGND2026</div></div></div><div class="clan-stats"><div>الترتيب<b>#1</b></div><div>الأعضاء<b>47/50</b></div><div>الكؤوس<b>912k</b></div></div></div>
-          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦅</div><div><div class="clan-name">صقور البرق</div><div class="clan-tag">#FALCN99</div></div></div><div class="clan-stats"><div>الترتيب<b>#2</b></div><div>الأعضاء<b>50/50</b></div><div>الكؤوس<b>874k</b></div></div></div>
-          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🗡️</div><div><div class="clan-name">فرسان الصمت</div><div class="clan-tag">#SILNT01</div></div></div><div class="clan-stats"><div>الترتيب<b>#3</b></div><div>الأعضاء<b>45/50</b></div><div>الكؤوس<b>801k</b></div></div></div>
-          <div class="clan-card"><div class="clan-top"><div class="clan-hex hex">🦉</div><div><div class="clan-name">نسور الذهب</div><div class="clan-tag">#GOLD777</div></div></div><div class="clan-stats"><div>الترتيب<b>#4</b></div><div>الأعضاء<b>49/50</b></div><div>الكؤوس<b>764k</b></div></div></div>
-        </div>
+        <div class="page-head"><h2>تصنيف الكلانات</h2><div class="sub">الكلانات المضافة من لوحة الإدارة</div></div>
+        <div class="clan-grid" id="clansGrid"><div class="overview-clans-empty">جارِ تحميل الكلانات...</div></div>
       </section>
 
       <!-- BADGES -->
@@ -806,6 +819,37 @@
     <div id="bdContent"></div>
   </aside>
 </div>
+
+<!-- ================= CLAN DETAILS MODAL ================= -->
+<div id="clanModalOverlay" role="dialog" aria-modal="true" aria-labelledby="clanModalTitle">
+  <div class="player-modal" id="clanModalCard">
+    <div class="pm-close" id="clanCloseBtn" role="button" tabindex="0" aria-label="إغلاق">✕</div>
+    <div class="pm-scroll" id="clanModalScroll">
+      <div class="clan-modal-head"><div class="clan-modal-logo" id="clanModalLogo">🛡️</div><div><h2 id="clanModalTitle" style="font-family:Lalezar;font-size:24px;">الكلان</h2><div class="sub" id="clanModalTag">#—</div></div></div>
+      <div class="clan-detail-grid" id="clanModalStats"></div>
+      <div class="panel" style="padding:16px;margin-top:10px"><div class="panel-head"><h3 style="font-size:16px">👥 لاعبو الكلان المسجلون في الموقع</h3><span class="count" id="clanMemberCount">0</span></div><div class="clan-modal-members" id="clanMembersList"></div></div>
+    </div>
+  </div>
+</div>
+
+
+try{
+  document.addEventListener("click",e=>{
+    const clanCard=e.target.closest("[data-clan-id]");
+    if(clanCard){openClanProfile(clanCard.dataset.clanId);return;}
+    const pod=e.target.closest("[data-podium-player]");
+    if(pod){openPlayerProfile(pod.dataset.podiumPlayer);return;}
+    const member=e.target.closest("[data-clan-player]");
+    if(member){closeClanProfile();setTimeout(()=>openPlayerProfile(member.dataset.clanPlayer),190);}
+  });
+  document.addEventListener("keydown",e=>{
+    if((e.key==="Enter"||e.key===" ") && e.target.closest("[data-clan-id]")){e.preventDefault();openClanProfile(e.target.closest("[data-clan-id]").dataset.clanId);}
+    if((e.key==="Enter"||e.key===" ") && e.target.closest("[data-podium-player]")){e.preventDefault();openPlayerProfile(e.target.closest("[data-podium-player]").dataset.podiumPlayer);}
+    if(e.key==="Escape")closeClanProfile();
+  });
+  document.getElementById("clanCloseBtn")?.addEventListener("click",closeClanProfile);
+  document.getElementById("clanModalOverlay")?.addEventListener("click",e=>{if(e.target.id==="clanModalOverlay")closeClanProfile();});
+}catch(e){console.error(e);}
 
 <!-- ================= PLAYER PROFILE MODAL ================= -->
 <div id="playerModalOverlay" role="dialog" aria-modal="true" aria-labelledby="pmName">
@@ -1169,6 +1213,60 @@ function populateTitleFilter(){
   el.value=BADGE_DEFINITIONS.some(b=>b.id===current)?current:"all";
 }
 
+
+let clansCache = [];
+
+function clanMatchesPlayer(clan, player){
+  const a=String(player?.clan||'').trim().toLowerCase();
+  if(!a) return false;
+  return a===String(clan.name||'').trim().toLowerCase() || a===String(clan.tag||'').trim().toLowerCase();
+}
+function clanLogoHtml(clan, cls="clan-logo"){
+  if(clan.logo_url) return `<div class="${cls}"><img src="${escapeHtml(clan.logo_url)}" alt=""></div>`;
+  return `<div class="${cls}">🛡️</div>`;
+}
+function renderClanCards(list, targetId){
+  const el=document.getElementById(targetId); if(!el)return;
+  if(!list.length){el.innerHTML='<div class="overview-clans-empty">لم تتم إضافة أي كلانات بعد.</div>';return;}
+  el.innerHTML=list.map(c=>`<div class="clan-card" tabindex="0" role="button" data-clan-id="${escapeHtml(String(c.id))}" aria-label="فتح كلان ${escapeHtml(c.name)}">
+    <div class="clan-top">${clanLogoHtml(c)}<div><div class="clan-name">${escapeHtml(c.name)}</div><div class="clan-tag">${escapeHtml(c.tag||'—')}</div></div></div>
+    <div class="clan-stats"><div>الترتيب<b>#${Number(c.world_rank||0).toLocaleString('en-US')}</b></div><div>الأعضاء<b>${Number(c.member_count||0).toLocaleString('en-US')}</b></div><div>الكؤوس<b>${Number(c.total_trophies||0).toLocaleString('en-US')}</b></div></div>
+  </div>`).join("");
+}
+async function loadClans(){
+  if(!sb)return;
+  const r=await sb.from("clans").select("id,name,tag,total_trophies,member_count,world_rank,logo_url").order("world_rank",{ascending:true});
+  if(r.error){console.warn("تعذر تحميل الكلانات:",r.error.message);clansCache=[];renderClanCards([],"overviewClansGrid");renderClanCards([],"clansGrid");return;}
+  clansCache=r.data||[];
+  renderClanCards(clansCache.slice().sort((a,b)=>Number(a.world_rank||999999)-Number(b.world_rank||999999)),"overviewClansGrid");
+  renderClanCards(clansCache.slice().sort((a,b)=>Number(a.world_rank||999999)-Number(b.world_rank||999999)),"clansGrid");
+}
+async function openClanProfile(id){
+  const clan=clansCache.find(c=>String(c.id)===String(id)); if(!clan)return;
+  const overlay=document.getElementById("clanModalOverlay");
+  document.getElementById("clanModalTitle").textContent=clan.name||"الكلان";
+  document.getElementById("clanModalTag").textContent=clan.tag||"—";
+  document.getElementById("clanModalLogo").innerHTML=clan.logo_url?`<img src="${escapeHtml(clan.logo_url)}" alt="">`:"🛡️";
+  document.getElementById("clanModalStats").innerHTML=[
+    ["🏆","إجمالي الكؤوس",Number(clan.total_trophies||0).toLocaleString("en-US")],
+    ["👥","الأعضاء",Number(clan.member_count||0).toLocaleString("en-US")],
+    ["🌍","الترتيب العالمي","#"+Number(clan.world_rank||0).toLocaleString("en-US")],
+    ["🎮","المسجلون بالموقع", "جارِ التحميل..."]
+  ].map(x=>`<div class="clan-detail-stat"><div style="font-size:20px">${x[0]}</div><small>${x[1]}</small><b>${x[2]}</b></div>`).join("");
+  overlay.classList.add("open");requestAnimationFrame(()=>overlay.classList.add("show"));document.body.style.overflow="hidden";
+  const members=playersCache.filter(p=>clanMatchesPlayer(clan,p)).sort((a,b)=>Number(b.trophies||0)-Number(a.trophies||0));
+  document.getElementById("clanMemberCount").textContent=members.length;
+  document.getElementById("clanModalStats").lastElementChild.querySelector("b").textContent=members.length.toLocaleString("en-US");
+  document.getElementById("clanMembersList").innerHTML=members.length?members.map((p,i)=>`<div class="clan-member-row" tabindex="0" data-clan-player="${escapeHtml(playerKeyFor(p))}">
+    <span class="clan-member-rank">#${i+1}</span><span style="font-weight:800;flex:1">${escapeHtml(p.username||"لاعب")}${p.verified?'<span style="color:#149E77;font-size:10px;font-weight:900;margin-right:5px">✓</span>':''}</span><span>${Number(p.trophies||0).toLocaleString("en-US")} 🏆</span>
+  </div>`).join(""):'<div class="clan-modal-empty">لا يوجد لاعبون من هذا الكلان مسجلون في الموقع حاليًا.</div>';
+}
+function closeClanProfile(){
+  const o=document.getElementById("clanModalOverlay"); if(!o)return;
+  o.classList.remove("show");document.body.style.overflow="";
+  setTimeout(()=>o.classList.remove("open"),180);
+}
+
 async function loadDashboard(){
   if(!sb) return;
   const { data, error } = await sb.from("players").select("*").eq("verified", true).order("trophies", { ascending:false });
@@ -1180,6 +1278,7 @@ async function loadDashboard(){
   renderPodium(playersCache.slice(0,3));
   renderPlayersTable(playersCache);
   await loadSeasonData();
+  await loadClans();
 }
 
 
@@ -1247,7 +1346,7 @@ function renderPodium(top3){
   const el = document.getElementById("podium");
   if(!top3.length){ el.innerHTML='<div class="podium-empty">لا يوجد لاعبون بعد — كن أول من ينضم!</div>'; return; }
   const order=[top3[1],top3[0],top3[2]], classes=["p2","p1","p3"];
-  el.innerHTML=order.map((p,i)=>{if(!p)return "";return `<div class="p-slot ${classes[i]}"><div class="p-hex hex">🎮</div><div class="p-name">${escapeHtml(p.username)}</div><div class="p-clan">${escapeHtml(p.clan||"بلا كلان")}</div><div class="p-bar">${(p.trophies||0).toLocaleString("en-US")}</div></div>`}).join("");
+  el.innerHTML=order.map((p,i)=>{if(!p)return "";return `<div class="p-slot ${classes[i]}" tabindex="0" role="button" data-podium-player="${escapeHtml(playerKeyFor(p))}" aria-label="فتح بروفايل ${escapeHtml(p.username||"اللاعب")}"><div class="p-hex hex">🎮</div><div class="p-name">${escapeHtml(p.username)}</div><div class="p-clan">${escapeHtml(p.clan||"بلا كلان")}</div><div class="p-bar">${(p.trophies||0).toLocaleString("en-US")}</div></div>`}).join("");
 }
 
 function renderPlayersTable(list){
@@ -1259,7 +1358,7 @@ function renderPlayersTable(list){
     const searchKey=(p.username+" "+(p.clan||"")+" "+title+" "+(p.rank||"")).toLowerCase();
     const miniBadges=awards.slice(0,4).map(a=>{const b=BADGE_DEFINITIONS.find(x=>x.id===String(a.badge_id));return b?`<span class="player-badge-mini" title="${escapeHtml(b.name)}">${b.icon}</span>`:""}).join("");
     const more=awards.length>4?`<span class="more">+${awards.length-4}</span>`:"";
-    return `<tr data-search="${escapeHtml(searchKey)}" class="player-row" data-player-id="${escapeHtml(pid)}" tabindex="0" role="button" aria-haspopup="dialog"><td class="rank-num">${i+1}</td><td><div class="row-player">${appearanceMarkup(p,'appearance-mini')}<div>${escapeHtml(p.username)}${p.verified?'<span style="color:#149E77;font-size:10px;font-weight:900;margin-right:5px">✓</span>':''}</div></div></td><td><div class="player-badges-inline">${miniBadges||'<span style="color:var(--ink-soft);font-size:10px">—</span>'}${more}</div></td><td>${escapeHtml(p.clan||"—")}</td><td><b>${(p.trophies||0).toLocaleString("en-US")}</b></td><td>${(p.wins||0).toLocaleString("en-US")}</td><td><span class="tag ${t.cls}">${t.icon} ${t.label}</span></td></tr>`;
+    return `<tr data-search="${escapeHtml(searchKey)}" class="player-row" data-player-id="${escapeHtml(pid)}" tabindex="0" role="button" aria-haspopup="dialog"><td class="rank-num">${i+1}</td><td><div class="row-player"><div class="mini-h hex" style="background:linear-gradient(145deg,var(--primary),var(--primary-deep))">🎮</div><div>${escapeHtml(p.username)}${p.verified?'<span style="color:#149E77;font-size:10px;font-weight:900;margin-right:5px">✓</span>':''}</div></div></td><td><div class="player-badges-inline">${miniBadges||'<span style="color:var(--ink-soft);font-size:10px">—</span>'}${more}</div></td><td>${escapeHtml(p.clan||"—")}</td><td><b>${(p.trophies||0).toLocaleString("en-US")}</b></td><td>${(p.wins||0).toLocaleString("en-US")}</td><td><span class="tag ${t.cls}">${t.icon} ${t.label}</span></td></tr>`;
   }).join("");
 }
 
@@ -1417,8 +1516,11 @@ function renderProfileContent(p){
   const name = escapeHtml(p.username || "لاعب");
   const clan = p.clan ? `<div class="pm-clan">🛡️ ${escapeHtml(p.clan)}</div>` : "";
   const avatarSrc = getAvatarSrc(p.avatar_key, p.avatar_url);
-  const avatar = avatarSrc ? `<img class="pm-avatar-image" src="${escapeHtml(avatarSrc)}" alt="${name}">` : "🎮";
   const frameSrc = getFrameSrc(p.frame_key);
+  const fm = (p.frame_key && FRAME_METRICS[p.frame_key]) ? FRAME_METRICS[p.frame_key] : null;
+  const pmAvatarStyle = fm ? `--frame-ar:${fm.ar};` : "";
+  const pmImageStyle = fm ? `width:${fm.holeW}%;height:${fm.holeH}%;` : `width:100%;height:100%;`;
+  const avatar = avatarSrc ? `<img class="pm-avatar-image" style="${pmImageStyle}" src="${escapeHtml(avatarSrc)}" alt="${name}">` : "🎮";
   const ri=rankInfo(p.rank);
   const joinDate = formatJoinDate(p.created_at);
 
@@ -1455,7 +1557,7 @@ function renderProfileContent(p){
 
   document.getElementById("pmScroll").innerHTML = `
     <div class="pm-head">
-      <div class="pm-avatar">${avatar}${frameSrc?`<img class="pm-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}</div>
+      <div class="pm-avatar" style="${pmAvatarStyle}">${avatar}${frameSrc?`<img class="pm-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}</div>
       <div class="pm-name" id="pmName">${name}</div>
       ${p.player_tag ? `<div class="pm-tag">${escapeHtml(p.player_tag)}</div>` : ""}
       ${p.social_username ? `<div class="pm-tag" style="direction:ltr;text-align:right">${escapeHtml(p.social_username)}</div>` : ""}
@@ -1527,27 +1629,25 @@ const FRAME_OPTIONS=[
   {key:'diamond',name:'الإطار الماسي',src:'assets/frames/frame-diamond.png',unlock:'arena_legend'},
   {key:'masters',name:'إطار الماسترز',src:'assets/frames/frame-masters.png',unlock:'__locked__'}
 ];
+// أبعاد الفتحة الشفافة الحقيقية داخل كل إطار (مقاسة من ملفات PNG الفعلية نفسها)،
+// تُستخدم لتحجيم صورة الأفاتار بحيث تملأ فتحة الإطار تمامًا دون أي قص سداسي CSS يدوي.
+// ar = نسبة عرض:ارتفاع صورة الإطار نفسها. holeW/holeH = نسبة مئوية من أبعاد الإطار.
+const FRAME_METRICS={
+  bronze:  { ar:(434/571).toFixed(4), holeW:67.7, holeH:48.0 },
+  silver:  { ar:(435/556).toFixed(4), holeW:68.3, holeH:48.7 },
+  gold:    { ar:(520/563).toFixed(4), holeW:57.1, holeH:46.5 },
+  diamond: { ar:(684/601).toFixed(4), holeW:43.9, holeH:50.2 },
+  masters: { ar:(714/609).toFixed(4), holeW:41.9, holeH:48.3 }
+};
 let appearanceMode='avatars', currentPlayerAppearance=null;
 function getAvatarSrc(key,fallback){return (AVATAR_OPTIONS.find(x=>x.key===key)?.src)||fallback||AVATAR_OPTIONS[0].src;}
 function getFrameSrc(key){return FRAME_OPTIONS.find(x=>x.key===key)?.src||null;}
-function appearanceMarkup(p, cls='appearance-mini'){
-  const avatarSrc=getAvatarSrc(p?.avatar_key,p?.avatar_url);
-  const frameSrc=getFrameSrc(p?.frame_key);
-  return `<span class="${cls}"><img class="appearance-avatar" src="${escapeHtml(avatarSrc)}" alt="">${frameSrc?`<img class="appearance-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}</span>`;
-}
-function updateLoggedAppearance(p){
-  const el=document.getElementById('loggedAppearance'); if(!el)return;
-  const avatarSrc=getAvatarSrc(p?.avatar_key,p?.avatar_url);
-  const frameSrc=getFrameSrc(p?.frame_key);
-  el.innerHTML=`<img class="appearance-avatar" src="${escapeHtml(avatarSrc)}" alt="">${frameSrc?`<img class="appearance-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}`;
-}
 function unlockedAppearance(item){return !item.unlock || (item.unlock!=='__locked__' && (badgeAwardsByUser[String(verifiedUserId||'')]||[]).some(a=>String(a.badge_id)===item.unlock));}
 async function loadCurrentPlayerAppearance(){
   if(!sb||!verifiedUserId)return;
   const r=await sb.from('players').select('user_id,avatar_key,frame_key,avatar_url,rank').eq('user_id',verifiedUserId).maybeSingle();
   if(r.error){console.error('loadCurrentPlayerAppearance:',r.error);return;}
   currentPlayerAppearance=r.data||{user_id:verifiedUserId,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
-  updateLoggedAppearance(currentPlayerAppearance);
   renderAppearanceGrid();
 }
 function renderAppearanceGrid(){
@@ -1559,8 +1659,8 @@ function renderAppearanceGrid(){
   grid.innerHTML=list.map(item=>{
     const ok=unlockedAppearance(item), selected=current===item.key;
     const avatarHtml=appearanceMode==='avatars'
-      ? `<img class="avatar-art" src="${escapeHtml(item.src)}" alt="">`
-      : `<img class="avatar-art" src="${escapeHtml(currentAvatar)}" alt="">`;
+      ? `<img src="${escapeHtml(item.src)}" alt="">`
+      : `<img src="${escapeHtml(currentAvatar)}" alt="">`;
     // IMPORTANT: avatar cards never receive a frame overlay. This removes the old silver hexagon.
     const frameHtml=appearanceMode==='frames' && item.src
       ? `<img class="frame-ring" src="${escapeHtml(item.src)}" alt="">`
@@ -1580,25 +1680,10 @@ async function selectAppearance(key){
   const payload=appearanceMode==='avatars'
     ? {p_avatar_key:key,p_frame_key:current.frame_key||'classic'}
     : {p_avatar_key:current.avatar_key||'starter',p_frame_key:key};
-  // Save through the protected SECURITY DEFINER RPC. If the RPC is unavailable,
-  // show an actionable message instead of silently leaving the UI in a fake state.
   const r=await sb.rpc('set_player_appearance',payload);
-  if(r.error){
-    console.error('set_player_appearance:',r.error);
-    const msg=String(r.error.message||r.error.details||'');
-    if(/function .*set_player_appearance|does not exist|schema cache/i.test(msg)){
-      alert('تعذر حفظ المظهر لأن دالة الحفظ في Supabase غير مضافة بعد. شغّل ملف supabase_verification_setup.sql ثم أعد المحاولة.');
-    }else if(/Authentication required|JWT|auth/i.test(msg)){
-      alert('تعذر حفظ المظهر: انتهت جلسة تسجيل الدخول. سجّل الدخول من جديد ثم حاول.');
-    }else{
-      alert('تعذر حفظ المظهر: '+msg);
-    }
-    return;
-  }
+  if(r.error){console.error('set_player_appearance:',r.error);alert('تعذر حفظ المظهر: '+r.error.message);return;}
   currentPlayerAppearance={...current,...(appearanceMode==='avatars'?{avatar_key:key}:{frame_key:key})};
-  updateLoggedAppearance(currentPlayerAppearance);
   renderAppearanceGrid();
-  // Refresh the public player cache/profile immediately so the chosen artwork is visible everywhere.
   await loadDashboard();
 }
 function openAppearancePage(){

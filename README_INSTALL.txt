@@ -38,13 +38,12 @@ FILES
 - assets/frames/frame-*.png (new supplied frame artwork)
 - Existing SVG assets are retained for compatibility but are no longer used for the new appearance catalog.
 
-FIXES IN THIS BUILD
-- The supplied avatar/frame artwork is now rendered using its own transparent hex geometry; the old CSS hex clip-path is no longer applied to profile artwork.
-- Frame previews use the full supplied frame canvas so the R badge, stars, lightning and flames are not cropped or replaced by an old/default hex.
-- Frame selection previews the currently selected avatar underneath the frame, making avatar/frame compatibility visible before selection.
-- The top account avatar and player-list avatars now use the selected profile image/frame instead of the old generic controller/hex icon.
-- Appearance saving now gives a specific diagnostic message when the protected Supabase RPC has not been installed or the session has expired.
-- The supplied SQL keeps appearance changes protected through the SECURITY DEFINER RPC; users can only change their own avatar/frame and cannot use this feature to modify rank, trophies, verification, or other player fields.
 
-IMPORTANT FOR THE SAVE ERROR
-After replacing the website files, run supabase_verification_setup.sql in the same Supabase project. The frontend intentionally uses the protected set_player_appearance RPC. If the SQL has not been executed, changing an appearance will fail and the page will tell you exactly what is missing.
+CLANS UPDATE
+============
+هذه النسخة تضيف نظام الكلانات المرتبط بجدول public.clans.
+شغّل فقط الجزء الخاص بالكلانات في supabase_verification_setup.sql (الجزء الذي يبدأ بـ:
+-- 15) Clans
+ولا تعِد تشغيل الملف كاملًا إذا كانت قاعدة البيانات الحالية تعمل.
+بعد إنشاء الجدول، ارفع index.html وadmin.html.
+يمكن للمشرف إضافة/تعديل/حذف الكلانات من لوحة الإدارة.
