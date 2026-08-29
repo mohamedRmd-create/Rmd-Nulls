@@ -97,7 +97,8 @@
   #app:has(#tabOverview:checked) label[for="tabOverview"],
   #app:has(#tabPlayers:checked) label[for="tabPlayers"],
   #app:has(#tabClans:checked) label[for="tabClans"],
-  #app:has(#tabBadges:checked) label[for="tabBadges"]{
+  #app:has(#tabBadges:checked) label[for="tabBadges"],
+  #app:has(#tabSeason:checked) label[for="tabSeason"]{
     background:linear-gradient(90deg,#EFE7FF,#F8F4FF); color:var(--primary-deep); box-shadow:inset 3px 0 0 var(--primary);
   }
 
@@ -116,6 +117,7 @@
   #app:has(#tabPlayers:checked) #tab-players{ display:block; }
   #app:has(#tabClans:checked) #tab-clans{ display:block; }
   #app:has(#tabBadges:checked) #tab-badges{ display:block; }
+  #app:has(#tabSeason:checked) #tab-season{ display:block; }
   #app:has(#tabVerify:checked) #tab-verify{ display:block; }
   .page-head{ margin-bottom:20px; }
   .page-head h2{ font-size:20px; }
@@ -465,6 +467,19 @@
     .acct-dropdown{ min-width:190px; }
     .verify-status-card{ padding:28px 18px; }
   }
+
+  .season-card{background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:24px;box-shadow:var(--shadow);margin-bottom:22px;}
+  .season-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;}
+  .season-countdown{background:linear-gradient(145deg,var(--primary),var(--primary-deep));color:#fff;border-radius:16px;padding:12px 18px;min-width:180px;text-align:center;}
+  .season-countdown .small{font-size:10px;opacity:.85;font-weight:700}.season-countdown .time{font-family:'Lalezar';font-size:22px;line-height:1.2;margin-top:2px;}
+  .season-leaders{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:12px 0 24px;}
+  .season-leader{border:1px solid var(--border);border-radius:18px;padding:16px;text-align:center;position:relative;overflow:hidden;}
+  .season-leader.gold{background:linear-gradient(180deg,#FFF8DD,#fff)} .season-leader.silver{background:linear-gradient(180deg,#F1F3FA,#fff)} .season-leader.bronze{background:linear-gradient(180deg,#FFF0E5,#fff)}
+  .season-medal{font-size:30px}.season-rank{font-family:'Lalezar';font-size:18px;color:var(--primary-deep)} .season-leader-name{font-weight:900;font-size:14px;margin:4px 0}.season-leader-clan{font-size:10px;color:var(--ink-soft);margin-bottom:8px}.season-gain{font-family:'Lalezar';font-size:20px}.season-meta{font-size:10px;color:var(--ink-soft);line-height:1.8;margin-top:6px}
+  .season-table-wrap{overflow:auto}.season-table{width:100%;border-collapse:collapse;min-width:700px}.season-table th,.season-table td{padding:12px;border-bottom:1px solid #F0ECFA;font-size:11.5px;text-align:right}.season-table th{background:#FBFAFF;color:var(--ink-soft)}
+  .season-rank-num{font-family:'Lalezar';font-size:17px;color:var(--primary-deep)}.season-achievements{display:flex;flex-wrap:wrap;gap:4px}.season-achievement{background:#F2EEFF;color:var(--primary-deep);padding:3px 7px;border-radius:999px;font-size:9px;font-weight:800}
+  .season-empty{text-align:center;padding:28px;color:var(--ink-soft)}
+  @media(max-width:760px){.season-leaders{grid-template-columns:1fr}.season-card{padding:17px}.season-countdown{width:100%}}
 </style>
 </head>
 <body>
@@ -533,6 +548,7 @@
   <input type="radio" name="tab" id="tabPlayers" class="hidden-toggle">
   <input type="radio" name="tab" id="tabClans" class="hidden-toggle">
   <input type="radio" name="tab" id="tabBadges" class="hidden-toggle">
+  <input type="radio" name="tab" id="tabSeason" class="hidden-toggle">
   <input type="radio" name="tab" id="tabVerify" class="hidden-toggle">
   <input type="checkbox" id="menuToggle" class="hidden-toggle">
 
@@ -548,6 +564,7 @@
     <label class="nav-item" for="tabPlayers" onclick="closeMobileMenu()"><span class="ic">🎮</span><span class="lbl-text">اللاعبون</span></label>
     <label class="nav-item" for="tabClans" onclick="closeMobileMenu()"><span class="ic">🛡️</span><span class="lbl-text">الكلانات</span></label>
     <label class="nav-item" for="tabBadges" onclick="closeMobileMenu()"><span class="ic">⭐</span><span class="lbl-text">الشارات</span></label>
+    <label class="nav-item" for="tabSeason" onclick="closeMobileMenu()"><span class="ic">🏅</span><span class="lbl-text">الموسم</span></label>
     <label class="logout-lbl" for="authToggle" onclick="handleLogout()">⏻ <span class="lbl-text">تسجيل خروج</span></label>
     <div class="sidebar-foot">Rmd Null © 2026<br>غير رسمي وغير تابع لـ Supercell</div>
   </aside>
@@ -647,6 +664,20 @@
           <button type="button" class="badge-card" data-badge-id="lightning_speed"><div class="b-hex hex">⚡</div><h4>سرعة البرق</h4><p>إنهاء 3 مباريات خلال دقيقة</p><span class="badge-title">لقب: البرق</span></button>
           <button type="button" class="badge-card" data-badge-id="chest_king"><div class="b-hex hex">🎁</div><h4>ملك السحب</h4><p>فتح 50 صندوقًا أسطوريًا</p><span class="badge-title">لقب: ملك السحب</span></button>
           <button type="button" class="badge-card" data-badge-id="clan_leader"><div class="b-hex hex">🎖️</div><h4>قائد الكلان</h4><p>قيادة كلان مصنّف ضمن أعلى 10</p><span class="badge-title">لقب: قائد الكلان</span></button>
+        </div>
+      </section>
+
+
+      <!-- CURRENT SEASON -->
+      <section class="section" id="tab-season">
+        <div class="page-head"><h2>الموسم الحالي 🏅</h2><div class="sub" id="seasonNameText">متصدرون الموسم وإحصائيات التقدم</div></div>
+        <div class="season-card">
+          <div class="season-topbar">
+            <div><h3 style="font-size:18px">🏆 متصدرين الموسم الحالي</h3><div class="sub">يتم ترتيب اللاعبين حسب عدد الكؤوس التي رفعوها خلال هذا الموسم.</div></div>
+            <div class="season-countdown"><div class="small">الوقت المتبقي لنهاية الموسم</div><div class="time" id="seasonCountdown">جارٍ الحساب...</div></div>
+          </div>
+          <div class="season-leaders" id="seasonLeaders"></div>
+          <div class="season-table-wrap"><table class="season-table"><thead><tr><th>#</th><th>اللاعب</th><th>الكؤوس الحالية 🏆</th><th>الكلان</th><th>رفع هذا الموسم</th><th>الرتبة التي رفعها</th><th>الإنجازات</th></tr></thead><tbody id="seasonPlayersBody"><tr><td colspan="7" class="season-empty">جارِ تحميل بيانات الموسم...</td></tr></tbody></table></div>
         </div>
       </section>
 
@@ -1090,6 +1121,42 @@ async function loadDashboard(){
   renderStats(playersCache);
   renderPodium(playersCache.slice(0,3));
   renderPlayersTable(playersCache);
+  await loadSeasonData();
+}
+
+
+let seasonSettings=null, seasonStatsByUser={};
+let seasonCountdownTimer=null;
+function formatSeasonDate(v){try{return new Intl.DateTimeFormat('ar',{dateStyle:'medium'}).format(new Date(v))}catch{return v||'—'}}
+function seasonTimeLeft(end){
+  const ms=Math.max(0,new Date(end).getTime()-Date.now());
+  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000), m=Math.floor(ms%3600000/60000), sec=Math.floor(ms%60000/1000);
+  return `${d} يوم ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function startSeasonCountdown(){
+  clearInterval(seasonCountdownTimer);
+  const el=document.getElementById('seasonCountdown'); if(!el||!seasonSettings)return;
+  const tick=()=>{const end=new Date(seasonSettings.ends_at); el.textContent=Date.now()>=end?'انتهى الموسم':seasonTimeLeft(end)};
+  tick(); seasonCountdownTimer=setInterval(tick,1000);
+}
+async function loadSeasonData(){
+  if(!sb)return;
+  const sr=await sb.from('season_settings').select('id,season_name,starts_at,ends_at').eq('id',1).maybeSingle();
+  if(sr.error){console.warn('تعذر تحميل إعدادات الموسم:',sr.error.message);return;}
+  seasonSettings=sr.data;
+  const title=document.getElementById('seasonNameText'); if(title&&seasonSettings) title.textContent=`${seasonSettings.season_name} • من ${formatSeasonDate(seasonSettings.starts_at)} إلى ${formatSeasonDate(seasonSettings.ends_at)}`;
+  startSeasonCountdown();
+  const rr=await sb.from('season_player_stats').select('user_id,trophies_gained,rank_gained,achievements').eq('season_id',1);
+  seasonStatsByUser={}; (rr.data||[]).forEach(x=>seasonStatsByUser[String(x.user_id)] = x);
+  renderSeason(playersCache);
+}
+function renderSeason(players){
+  const rows=players.map(p=>{const s=seasonStatsByUser[String(p.user_id)]||{};return {...p,seasonGain:Number(s.trophies_gained||0),rankGain:Number(s.rank_gained||0),achievements:Array.isArray(s.achievements)?s.achievements:[]};});
+  rows.sort((a,b)=>b.seasonGain-a.seasonGain || Number(b.trophies||0)-Number(a.trophies||0));
+  const top=rows.slice(0,3), lead=document.getElementById('seasonLeaders');
+  if(lead){const medals=['🥇','🥈','🥉'], cls=['gold','silver','bronze']; lead.innerHTML=top.length?top.map((p,i)=>`<div class="season-leader ${cls[i]}"><div class="season-medal">${medals[i]}</div><div class="season-rank">#${i+1}</div><div class="season-leader-name">${escapeHtml(p.username||'لاعب')}</div><div class="season-leader-clan">${escapeHtml(p.clan||'بلا كلان')}</div><div class="season-gain">+${p.seasonGain.toLocaleString('en-US')} 🏆</div><div class="season-meta">الرتبة التي رفعها: ${p.rankGain.toLocaleString('en-US')}<br>الإنجازات: ${p.achievements.length}</div></div>`).join(''):'<div class="season-empty" style="grid-column:1/-1">لا يوجد لاعبون في الموسم بعد.</div>'}
+  const body=document.getElementById('seasonPlayersBody'); if(!body)return;
+  body.innerHTML=rows.length?rows.map((p,i)=>`<tr><td class="season-rank-num">#${i+1}</td><td><b>${escapeHtml(p.username||'لاعب')}</b>${p.verified?'<span style="color:#149E77;margin-right:4px">✓</span>':''}</td><td><b>${Number(p.trophies||0).toLocaleString('en-US')}</b></td><td>${escapeHtml(p.clan||'—')}</td><td><b>+${p.seasonGain.toLocaleString('en-US')}</b></td><td>${p.rankGain.toLocaleString('en-US')}</td><td><div class="season-achievements">${p.achievements.length?p.achievements.map(a=>`<span class="season-achievement">${escapeHtml(a)}</span>`).join(''):'<span style="color:var(--ink-soft);font-size:10px">لا توجد بعد</span>'}</div></td></tr>`).join(''):'<tr><td colspan="7" class="season-empty">لا يوجد لاعبون في الموسم بعد.</td></tr>';
 }
 
 function playerHasTitle(p,titleId){
