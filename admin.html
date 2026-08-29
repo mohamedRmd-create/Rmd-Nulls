@@ -40,7 +40,7 @@ function isAdmin(user){return !!(user?.app_metadata?.role === "admin");}
 function statusLabel(s){return s==='approved'?'موثق':s==='rejected'?'مرفوض':'قيد المراجعة'}
 function statusClass(s){return s==='approved'?'approved':s==='rejected'?'rejected':'pending'}
 function fmtDate(v){if(!v)return '—';try{return new Intl.DateTimeFormat('ar',{dateStyle:'medium',timeStyle:'short'}).format(new Date(v))}catch{return v}}
-function renderShell(){document.getElementById('pageState').innerHTML=`<div class="toolbar"><input class="field" id="search" placeholder="ابحث باسم اللاعب أو Player Tag أو اليوزر الاجتماعي..."><select class="field" id="statusFilter"><option value="all">كل الطلبات</option><option value="pending">قيد المراجعة</option><option value="approved">موثق</option><option value="rejected">مرفوض</option></select><select class="field" id="sortOrder"><option value="desc">الأحدث أولاً</option><option value="asc">الأقدم أولاً</option></select></div><section class="panel"><div class="panel-head"><h2>طلبات التوثيق</h2><span class="count" id="count">0</span></div><div id="tableArea"></div></section><section class="panel" style="margin-top:18px"><div class="panel-head"><h2>إدارة الشارات والألقاب</h2><span class="count">منح الإنجازات</span></div><div class="badge-admin-grid"><input class="field" id="badgePlayerSearch" placeholder="ابحث باسم اللاعب..."><select class="field" id="badgePlayerSelect"><option value="">اختر اللاعب</option></select><select class="field" id="badgeSelect"><option value="">اختر الشارة</option></select></div><div style="padding:0 20px 18px"><button class="btn primary" id="awardBadgeBtn" style="width:100%">🏅 منح الشارة وإضافة اللقب</button><div id="badgeAdminMsg" class="notice" style="display:none;margin:12px 0 0"></div></div><div id="badgeAwardsArea"></div></section>`;document.getElementById('search').oninput=renderTable;document.getElementById('statusFilter').onchange=renderTable;document.getElementById('sortOrder').onchange=renderTable;}
+function renderShell(){document.getElementById('pageState').innerHTML=`<div class="toolbar"><input class="field" id="search" placeholder="ابحث باسم اللاعب أو Player Tag أو اليوزر الاجتماعي..."><select class="field" id="statusFilter"><option value="all">كل الطلبات</option><option value="pending">قيد المراجعة</option><option value="approved">موثق</option><option value="rejected">مرفوض</option></select><select class="field" id="sortOrder"><option value="desc">الأحدث أولاً</option><option value="asc">الأقدم أولاً</option></select></div><section class="panel"><div class="panel-head"><h2>طلبات التوثيق</h2><span class="count" id="count">0</span></div><div id="tableArea"></div></section><section class="panel" style="margin-top:18px"><div class="panel-head"><h2>إدارة الشارات والألقاب</h2><span class="count">منح الإنجازات</span></div><div class="badge-admin-grid"><input class="field" id="badgePlayerSearch" placeholder="ابحث باسم اللاعب..."><select class="field" id="badgePlayerSelect"><option value="">اختر اللاعب</option></select><select class="field" id="badgeSelect"><option value="">اختر الشارة</option></select></div><div style="padding:0 20px 18px"><button class="btn primary" id="awardBadgeBtn" style="width:100%">🏅 منح الشارة وإضافة اللقب</button><div id="badgeAdminMsg" class="notice" style="display:none;margin:12px 0 0"></div></div><div id="badgeAwardsArea"></div></section><section class="panel" style="margin-top:18px"><div class="panel-head"><h2>🧪 لاعبين تجريبيين</h2><span class="count">للاختبار فقط</span></div><div class="badge-admin-grid" style="grid-template-columns:1fr 150px 150px"><input class="field" id="testPlayerName" placeholder="اسم اللاعب التجريبي"><input class="field" id="testPlayerTrophies" type="number" min="0" placeholder="الكؤوس"><input class="field" id="testPlayerWins" type="number" min="0" placeholder="الانتصارات"></div><div class="badge-admin-grid" style="grid-template-columns:1fr 1fr 1fr"><input class="field" id="testPlayerTag" placeholder="Player Tag مثل #TEST01"><input class="field" id="testPlayerSocial" placeholder="اليوزر الاجتماعي"><input class="field" id="testPlayerBest" type="number" min="0" placeholder="أعلى كؤوس"></div><div style="padding:0 20px 18px"><button class="btn primary" id="createTestPlayerBtn" style="width:100%">➕ إنشاء لاعب تجريبي</button><div id="testPlayerMsg" class="notice" style="display:none;margin:12px 0 0"></div></div><div id="testPlayersArea"></div></section>`;document.getElementById('search').oninput=renderTable;document.getElementById('statusFilter').onchange=renderTable;document.getElementById('sortOrder').onchange=renderTable;}
 async function load(){
   const {data:userData,error:userErr}=await sb.auth.getUser();
   if(userErr||!userData.user){deny('يجب تسجيل الدخول أولاً بحساب المشرف.');return;}
@@ -51,61 +51,54 @@ async function load(){
   await loadBadgeManager();
 }
 function deny(msg){document.getElementById('pageState').innerHTML=`<div class="denied"><div style="font-size:42px;margin-bottom:8px">🔒</div><h3>غير مصرح</h3><p>${esc(msg)}</p><button class="btn primary" style="margin-top:15px" onclick="location.href='index.html'">العودة للموقع</button></div>`}
-let badgeDefs = [
-  {id:"season_champion",name:"بطل الموسم",icon:"🏆",title:"بطل الموسم"},
-  {id:"thousand_wins",name:"ألف انتصار",icon:"⚔️",title:"محارب الألف"},
-  {id:"arena_legend",name:"أسطورة الحلبة",icon:"👑",title:"أسطورة الحلبة"},
-  {id:"star_hunter",name:"صياد النجوم",icon:"🌟",title:"صياد النجوم"},
-  {id:"invincible_castle",name:"قلعة لا تُقهر",icon:"🏰",title:"حامي القلعة"},
-  {id:"lightning_speed",name:"سرعة البرق",icon:"⚡",title:"البرق"},
-  {id:"chest_king",name:"ملك السحب",icon:"🎁",title:"ملك السحب"},
-  {id:"clan_leader",name:"قائد الكلان",icon:"🎖️",title:"قائد الكلان"}
-];
-let verifiedPlayers = [];
-
+let badgeDefs=[], verifiedPlayers=[];
 async function loadBadgeManager(){
-  // The badge definitions are part of the site's configuration, so the admin
-  // player selector must not disappear if the badges table is temporarily
-  // missing. We still try to load the database definitions when available.
-  const b = await sb.from('badges').select('id,name,icon,title').order('name');
-  if(!b.error && Array.isArray(b.data) && b.data.length) badgeDefs = b.data;
-  else if(b.error) console.warn('تعذر تحميل جدول badges، سيتم استخدام تعريفات الشارات المحلية:', b.error.message);
-
-  // IMPORTANT: load players independently from badges.
-  const p = await sb.from('players').select('user_id,username,trophies,wins,verified').order('username');
-  if(p.error){
-    console.error('تعذر تحميل اللاعبين:', p.error);
-    const ps=document.getElementById('badgePlayerSelect');
-    if(ps) ps.innerHTML='<option value="">تعذر تحميل اللاعبين</option>';
-    return;
-  }
-  verifiedPlayers = p.data || [];
-
+  const b=await sb.from('badges').select('id,name,icon,title').order('name');
+  if(b.error){console.warn(b.error);return;}
+  badgeDefs=b.data||[];
+  const p=await sb.from('players').select('user_id,username,trophies,wins,verified,is_test_player').order('username');
+  if(p.error){console.warn(p.error);return;}
+  verifiedPlayers=p.data||[];
   const ps=document.getElementById('badgePlayerSelect'), bs=document.getElementById('badgeSelect');
-  if(ps) renderBadgePlayers(verifiedPlayers);
+  if(ps) ps.innerHTML='<option value="">اختر اللاعب</option>'+verifiedPlayers.map(x=>`<option value="${esc(x.user_id)}">${esc(x.username)} — ${Number(x.trophies||0).toLocaleString('en-US')} 🏆</option>`).join('');
   if(bs) bs.innerHTML='<option value="">اختر الشارة</option>'+badgeDefs.map(x=>`<option value="${esc(x.id)}">${esc(x.icon)} ${esc(x.name)} — لقب: ${esc(x.title)}</option>`).join('');
-
   const search=document.getElementById('badgePlayerSearch');
-  if(search) search.oninput=()=>{
-    const q=search.value.trim().toLowerCase();
-    renderBadgePlayers(verifiedPlayers.filter(x=>String(x.username||'').toLowerCase().includes(q)));
-  };
-  const award=document.getElementById('awardBadgeBtn');
-  if(award) award.onclick=awardBadge;
+  if(search) search.oninput=()=>{const q=search.value.trim().toLowerCase();const filtered=verifiedPlayers.filter(x=>String(x.username||'').toLowerCase().includes(q));ps.innerHTML='<option value="">اختر اللاعب</option>'+filtered.map(x=>`<option value="${esc(x.user_id)}">${esc(x.username)} — ${Number(x.trophies||0).toLocaleString('en-US')} 🏆</option>`).join('');};
+  document.getElementById('awardBadgeBtn').onclick=awardBadge;
+  document.getElementById('createTestPlayerBtn').onclick=createTestPlayer;
+  renderTestPlayers();
 }
 
-function renderBadgePlayers(list){
-  const ps=document.getElementById('badgePlayerSelect');
-  if(!ps)return;
-  ps.innerHTML='<option value="">اختر اللاعب</option>'+list.map(x=>`<option value="${esc(x.user_id)}">${esc(x.username||'بدون اسم')} — ${Number(x.trophies||0).toLocaleString('en-US')} 🏆${x.verified?' ✓':''}</option>`).join('');
+async function createTestPlayer(){
+  const msg=document.getElementById('testPlayerMsg');
+  const username=document.getElementById('testPlayerName').value.trim();
+  const trophies=Number(document.getElementById('testPlayerTrophies').value||0);
+  const wins=Number(document.getElementById('testPlayerWins').value||0);
+  const playerTag=document.getElementById('testPlayerTag').value.trim();
+  const socialUsername=document.getElementById('testPlayerSocial').value.trim();
+  const bestTrophies=Number(document.getElementById('testPlayerBest').value||trophies);
+  if(!username){msg.textContent='اكتب اسم اللاعب التجريبي أولاً.';msg.className='notice err';msg.style.display='block';return;}
+  if(wins<0||trophies<0||bestTrophies<0){msg.textContent='الأرقام يجب ألا تكون سالبة.';msg.className='notice err';msg.style.display='block';return;}
+  const {error}=await sb.rpc('admin_create_test_player',{p_username:username,p_trophies:trophies,p_wins:wins,p_player_tag:playerTag||null,p_social_username:socialUsername||null,p_best_trophies:bestTrophies});
+  if(error){msg.textContent='تعذر إنشاء اللاعب التجريبي: '+error.message;msg.className='notice err';msg.style.display='block';return;}
+  msg.textContent='تم إنشاء اللاعب التجريبي بنجاح.';msg.className='notice info';msg.style.display='block';
+  ['testPlayerName','testPlayerTrophies','testPlayerWins','testPlayerTag','testPlayerSocial','testPlayerBest'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  await loadBadgeManager();
+  renderTestPlayers();
+}
+
+function renderTestPlayers(){
+  const area=document.getElementById('testPlayersArea'); if(!area)return;
+  const tests=verifiedPlayers.filter(p=>p.is_test_player===true);
+  area.innerHTML=tests.length ? `<div style="padding:0 20px 18px"><div class="table-wrap"><table style="min-width:650px"><thead><tr><th>اللاعب</th><th>الكؤوس</th><th>الانتصارات</th><th>الحالة</th></tr></thead><tbody>${tests.map(p=>`<tr><td class="user">${esc(p.username)}</td><td>${Number(p.trophies||0).toLocaleString('en-US')}</td><td>${Number(p.wins||0).toLocaleString('en-US')}</td><td><span class="status ${p.verified?'approved':'pending'}">${p.verified?'موثق':'تجريبي'}</span></td></tr>`).join('')}</tbody></table></div></div>` : '<div class="empty" style="padding:25px">لم تنشئ لاعبين تجريبيين بعد.</div>';
 }
 
 async function awardBadge(){
   const uid=document.getElementById('badgePlayerSelect')?.value, bid=document.getElementById('badgeSelect')?.value, msg=document.getElementById('badgeAdminMsg');
   if(!uid||!bid){msg.textContent='اختر اللاعب والشارة أولاً.';msg.className='notice err';msg.style.display='block';return;}
   const {error}=await sb.rpc('admin_award_badge',{p_user_id:uid,p_badge_id:bid});
-  if(error){msg.textContent='تعذر منح الشارة: '+error.message+' — تأكد من تشغيل SQL الخاص بنظام الشارات.';msg.className='notice err';msg.style.display='block';return;}
-  const b=badgeDefs.find(x=>String(x.id)===String(bid)), pl=verifiedPlayers.find(x=>String(x.user_id)===String(uid));
+  if(error){msg.textContent='تعذر منح الشارة: '+error.message;msg.className='notice err';msg.style.display='block';return;}
+  const b=badgeDefs.find(x=>x.id===bid), pl=verifiedPlayers.find(x=>x.user_id===uid);
   msg.textContent=`تم منح ${b?.name||'الشارة'} للاعب ${pl?.username||''} وإضافة لقب ${b?.title||''} إلى ملفه.`;msg.className='notice info';msg.style.display='block';
   document.getElementById('badgePlayerSelect').value='';document.getElementById('badgeSelect').value='';
 }
@@ -145,28 +138,18 @@ async function review(status){
   const msg=status==='approved'?'هل أنت متأكد من قبول هذا الحساب وتوثيقه؟':'هل أنت متأكد من رفض طلب التوثيق؟';
   if(!confirm(msg))return;
   document.getElementById('approveBtn').disabled=true;document.getElementById('rejectBtn').disabled=true;
-  // يتم تنفيذ القبول/الرفض داخل دالة PostgreSQL آمنة وذرّية حتى لا يحدث
-  // قبول للطلب دون تحديث ملف اللاعب أو العكس. الدالة تتحقق من صلاحية admin.
-  const {data:result,error:e1}=await sb.rpc('admin_review_verification_request',{
-    p_request_id:selectedRequest.id,
-    p_status:status,
-    p_admin_notes:notes
-  });
-  if(e1){
-    alert('تعذر مراجعة الطلب: '+e1.message);
-    document.getElementById('approveBtn').disabled=false;
-    document.getElementById('rejectBtn').disabled=false;
-    return;
+  const update={status,admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id};
+  if(status==='rejected')update.rejection_reason=notes;
+  const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
+  if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
+  if(status==='approved'){
+    const {error:e2}=await sb.from('players').update({verified:true,verified_at:new Date().toISOString()}).eq('user_id',selectedRequest.user_id);
+    if(e2){alert('تم قبول الطلب لكن تعذر تحديث حالة اللاعب: '+e2.message+'\nراجع RLS وسياسة تحديث players.');return;}
+  }else{
+    const {error:e3}=await sb.from('players').update({verified:false,verified_at:null}).eq('user_id',selectedRequest.user_id);
+    if(e3)console.warn('Could not reset player verification:',e3);
   }
-  if(!result?.success){
-    alert('تعذر إكمال العملية: '+(result?.message||'خطأ غير معروف'));
-    document.getElementById('approveBtn').disabled=false;
-    document.getElementById('rejectBtn').disabled=false;
-    return;
-  }
-  document.getElementById('modalOverlay').classList.remove('show');
-  await loadRequests();
-  await loadBadgeManager();
+  document.getElementById('modalOverlay').classList.remove('show');await loadRequests();
 }
 document.getElementById('approveBtn').onclick=()=>review('approved');document.getElementById('rejectBtn').onclick=()=>review('rejected');document.getElementById('closeModal').onclick=()=>document.getElementById('modalOverlay').classList.remove('show');document.getElementById('modalOverlay').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('show')};document.getElementById('refreshBtn').onclick=()=>loadRequests();document.getElementById('backBtn').onclick=()=>location.href='index.html';document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modalOverlay').classList.remove('show')});load();
 </script>
