@@ -1679,12 +1679,41 @@ function getAvatarSrc(key,fallback){return (AVATAR_OPTIONS.find(x=>x.key===key)?
 function getFrameSrc(key){return FRAME_OPTIONS.find(x=>x.key===key)?.src||null;}
 function unlockedAppearance(item){return !item.unlock || (item.unlock!=='__locked__' && (badgeAwardsByUser[String(verifiedUserId||'')]||[]).some(a=>String(a.badge_id)===item.unlock));}
 async function loadCurrentPlayerAppearance(){
+  if(!sb || !verifiedUserId) return;
+
+  const r = await sb
+    .from('players')
+    .select('user_id,avatar_key,frame_key,rank')
+    .eq('user_id', verifiedUserId)
+    .maybeSingle();
+
+  if(r.error){
+    console.error('loadCurrentPlayerAppearance:', r.error);
+    currentPlayerAppearance = {
+      user_id: verifiedUserId,
+      avatar_key: 'starter',
+      frame_key: 'classic',
+      rank: 'bronze'
+    };
+    renderAppearanceGrid();
+    return;
+  }
+
+  currentPlayerAppearance = r.data || {
+    user_id: verifiedUserId,
+    avatar_key: 'starter',
+    frame_key: 'classic',
+    rank: 'bronze'
+  };
+
+  renderAppearanceGrid();
+}
   if(!sb||!verifiedUserId)return;
   const r=await sb.from('players').select('user_id,avatar_key,frame_key,avatar_url,rank').eq('user_id',verifiedUserId).maybeSingle();
   if(r.error){console.error('loadCurrentPlayerAppearance:',r.error);return;}
   currentPlayerAppearance=r.data||{user_id:verifiedUserId,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
   renderAppearanceGrid();
-}
+
 function renderAppearanceGrid(){
   const grid=document.getElementById('appearanceGrid'); if(!grid)return;
   const list=appearanceMode==='avatars'?AVATAR_OPTIONS:FRAME_OPTIONS;
