@@ -202,6 +202,7 @@
   #badgeDrawerOverlay.open{display:block;}
   #badgeDrawerOverlay.show{opacity:1;}
   .badge-drawer{position:absolute;top:0;right:0;height:100%;width:min(460px,94vw);background:var(--surface);box-shadow:-20px 0 60px rgba(36,23,72,.22);transform:translateX(105%);transition:transform .25s cubic-bezier(.2,1.2,.3,1);overflow-y:auto;padding:26px 22px 34px;}
+  .bd-reward-box{background:linear-gradient(145deg,#FFF9E8,#F6F0FF);border-color:#EBDDAA;}.bd-rewards{display:flex;flex-direction:column;gap:8px}.bd-rewards span{display:block;background:rgba(255,255,255,.78);border:1px solid var(--border);border-radius:12px;padding:9px 11px;font-size:11px;color:var(--ink-soft);}.bd-rewards b{color:var(--ink);}
   #badgeDrawerOverlay.show .badge-drawer{transform:translateX(0);}
   .bd-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
   .bd-close{width:40px;height:40px;border:1px solid var(--border);background:#F5F1FF;color:var(--primary-deep);border-radius:13px;cursor:pointer;font-weight:900;flex-shrink:0;}
@@ -690,13 +691,13 @@
       <section class="section" id="tab-badges">
         <div class="page-head"><h2>الشارات والإنجازات</h2><div class="sub">اضغط على أي شارة لمعرفة التحدي واللقب واللاعبين الذين أنجزوها</div></div>
         <div class="badge-grid" id="badgeGrid">
-          <button type="button" class="badge-card" data-badge-id="season_champion"><div class="b-hex hex">🏆</div><h4>بطل الموسم</h4><p>الوصول للمركز الأول في موسمين متتاليين</p><span class="badge-title">لقب: بطل الموسم</span></button>
+          <button type="button" class="badge-card" data-badge-id="season_champion"><div class="b-hex hex">🏆</div><h4>بطل الموسم</h4><p>الوصول للمركز الأول في موسمين متتاليين</p><span class="badge-title">لقب: المحترف</span></button>
           <button type="button" class="badge-card" data-badge-id="thousand_wins"><div class="b-hex hex">⚔️</div><h4>ألف انتصار</h4><p>تحقيق 1000 فوز في الحلبة</p><span class="badge-title">لقب: محارب الألف</span></button>
-          <button type="button" class="badge-card" data-badge-id="arena_legend"><div class="b-hex hex">👑</div><h4>أسطورة الحلبة</h4><p>الوصول إلى رتبة Legendary</p><span class="badge-title">لقب: أسطورة الحلبة</span></button>
+          <button type="button" class="badge-card" data-badge-id="arena_legend"><div class="b-hex hex">👑</div><h4>أسطورة الحلبة</h4><p>الوصول إلى رتبة Legendary</p><span class="badge-title">إطار ألماسي + صورة القراصنة</span></button>
           <button type="button" class="badge-card" data-badge-id="star_hunter"><div class="b-hex hex">🌟</div><h4>صياد النجوم</h4><p>جمع 100 لاعب مميز</p><span class="badge-title">لقب: صياد النجوم</span></button>
           <button type="button" class="badge-card" data-badge-id="invincible_castle"><div class="b-hex hex">🏰</div><h4>قلعة لا تُقهر</h4><p>الفوز بـ 20 معركة كلان متتالية</p><span class="badge-title">لقب: حامي القلعة</span></button>
-          <button type="button" class="badge-card" data-badge-id="lightning_speed"><div class="b-hex hex">⚡</div><h4>سرعة البرق</h4><p>إنهاء 3 مباريات خلال دقيقة</p><span class="badge-title">لقب: البرق</span></button>
-          <button type="button" class="badge-card" data-badge-id="chest_king"><div class="b-hex hex">🎁</div><h4>ملك السحب</h4><p>فتح 50 صندوقًا أسطوريًا</p><span class="badge-title">لقب: ملك السحب</span></button>
+          <button type="button" class="badge-card" data-badge-id="lightning_speed"><div class="b-hex hex">⚡</div><h4>سرعة البرق</h4><p>إنهاء 3 مباريات خلال دقيقة</p><span class="badge-title">لقب: فلاش</span></button>
+          <button type="button" class="badge-card" data-badge-id="chest_king"><div class="b-hex hex">🎁</div><h4>ملك السحب</h4><p>فتح 50 صندوقًا أسطوريًا</p><span class="badge-title">بدون لقب أو مكافأة</span></button>
           <button type="button" class="badge-card" data-badge-id="clan_leader"><div class="b-hex hex">🎖️</div><h4>قائد الكلان</h4><p>قيادة كلان مصنّف ضمن أعلى 10</p><span class="badge-title">لقب: قائد الكلان</span></button>
         </div>
       </section>
@@ -1115,14 +1116,14 @@ if(sb){
 let playersCache = [];
 
 const BADGE_DEFINITIONS = [
-  {id:"season_champion",name:"بطل الموسم",icon:"🏆",challenge:"الوصول إلى المركز الأول في ترتيب اللاعبين في موسمين متتاليين.",title:"بطل الموسم"},
-  {id:"thousand_wins",name:"ألف انتصار",icon:"⚔️",challenge:"تحقيق 1000 فوز في الحلبة.",title:"محارب الألف"},
-  {id:"arena_legend",name:"أسطورة الحلبة",icon:"👑",challenge:"الوصول إلى رتبة Legendary.",title:"أسطورة الحلبة"},
-  {id:"star_hunter",name:"صياد النجوم",icon:"🌟",challenge:"جمع 100 لاعب مميز.",title:"صياد النجوم"},
-  {id:"invincible_castle",name:"قلعة لا تُقهر",icon:"🏰",challenge:"الفوز بـ 20 معركة كلان متتالية.",title:"حامي القلعة"},
-  {id:"lightning_speed",name:"سرعة البرق",icon:"⚡",challenge:"إنهاء 3 مباريات خلال دقيقة واحدة.",title:"البرق"},
-  {id:"chest_king",name:"ملك السحب",icon:"🎁",challenge:"فتح 50 صندوقًا أسطوريًا.",title:"ملك السحب"},
-  {id:"clan_leader",name:"قائد الكلان",icon:"🎖️",challenge:"قيادة كلان مصنّف ضمن أعلى 10.",title:"قائد الكلان"}
+  {id:"season_champion",name:"بطل الموسم",icon:"🏆",challenge:"الوصول إلى المركز الأول في ترتيب اللاعبين في موسمين متتاليين.",title:"المحترف",rewardFrame:"silver",rewardAvatar:null},
+  {id:"thousand_wins",name:"ألف انتصار",icon:"⚔️",challenge:"تحقيق 1000 فوز في الحلبة.",title:"محارب الألف",rewardFrame:null,rewardAvatar:null},
+  {id:"arena_legend",name:"أسطورة الحلبة",icon:"👑",challenge:"الوصول إلى رتبة Legendary.",title:null,rewardFrame:"diamond",rewardAvatar:"pirate_flag"},
+  {id:"star_hunter",name:"صياد النجوم",icon:"🌟",challenge:"جمع 100 لاعب مميز.",title:"صياد النجوم",rewardFrame:"bronze",rewardAvatar:null},
+  {id:"invincible_castle",name:"قلعة لا تُقهر",icon:"🏰",challenge:"الفوز بـ 20 معركة كلان متتالية.",title:"حامي القلعة",rewardFrame:null,rewardAvatar:null},
+  {id:"lightning_speed",name:"سرعة البرق",icon:"⚡",challenge:"إنهاء 3 مباريات خلال دقيقة واحدة.",title:"فلاش",rewardFrame:"gold",rewardAvatar:"tea_knight"},
+  {id:"chest_king",name:"ملك السحب",icon:"🎁",challenge:"فتح 50 صندوقًا أسطوريًا.",title:null,rewardFrame:null,rewardAvatar:null},
+  {id:"clan_leader",name:"قائد الكلان",icon:"🎖️",challenge:"قيادة كلان مصنّف ضمن أعلى 10.",title:"القائد",rewardFrame:"diamond",rewardAvatar:"royal_chicken"}
 ];
 let badgeAwardsByUser = {};
 let badgeWinnersByBadge = {};
@@ -1157,7 +1158,7 @@ async function loadBadgeData(){
 function populateTitleFilter(){
   const el=document.getElementById("titleFilter"); if(!el) return;
   const current=el.value||"all";
-  el.innerHTML='<option value="all">جميع الألقاب</option>'+BADGE_DEFINITIONS.map(b=>`<option value="${escapeHtml(b.id)}">${escapeHtml(b.title)}</option>`).join("");
+  el.innerHTML='<option value="all">جميع الألقاب</option>'+BADGE_DEFINITIONS.filter(b=>b.title).map(b=>`<option value="${escapeHtml(b.id)}">${escapeHtml(b.title)}</option>`).join("");
   el.value=BADGE_DEFINITIONS.some(b=>b.id===current)?current:"all";
 }
 
@@ -1266,9 +1267,13 @@ function applyPlayerFilters(){
 function renderBadgeDrawer(b){
   const winners=badgeWinnersByBadge[b.id]||[];
   const winnerHtml=winners.length?winners.slice(0,50).map(w=>`<div class="bd-winner"><span class="bd-winner-name">${escapeHtml(w.username)}</span><span class="bd-winner-date">${formatJoinDate(w.earned_at)||""}</span></div>`).join(""):'<div class="bd-empty">لم ينجز هذا التحدي أي لاعب حتى الآن. كن أول من يحصل عليه! 🔥</div>';
-  document.getElementById("bdContent").innerHTML=`<div class="bd-hero"><div class="bd-icon hex">${b.icon}</div><div class="bd-name" id="bdName">${escapeHtml(b.name)}</div><div class="bd-title">👑 اللقب: ${escapeHtml(b.title)}</div></div><div class="bd-block"><h4>🎯 كيف تحصل على الشارة؟</h4><p>${escapeHtml(b.challenge)}</p></div><div class="bd-block"><h4>👑 اللقب الذي ستحصل عليه</h4><p>عند إتمام هذا التحدي والحصول على الشارة، يضاف الإنجاز إلى بروفايلك ويظهر لقب <b>${escapeHtml(b.title)}</b> أسفل الشارة.</p></div><div class="bd-block"><h4>🏅 اللاعبون الذين أنجزوا التحدي (${winners.length})</h4><div class="bd-winners">${winnerHtml}</div></div>`;
+  const rewards=[];
+  if(b.title) rewards.push(`<span>👑 اللقب: <b>${escapeHtml(b.title)}</b></span>`);
+  if(b.rewardFrame){ const fr=FRAME_OPTIONS.find(x=>x.key===b.rewardFrame); if(fr) rewards.push(`<span>⭕ الإطار: <b>${escapeHtml(fr.name)}</b></span>`); }
+  if(b.rewardAvatar){ const av=AVATAR_OPTIONS.find(x=>x.key===b.rewardAvatar); if(av) rewards.push(`<span>🖼️ الصورة: <b>${escapeHtml(av.name)}</b></span>`); }
+  const rewardHtml=rewards.length?rewards.join(''):'<span>لا توجد مكافآت تجميلية أو ألقاب لهذه الشارة.</span>';
+  document.getElementById("bdContent").innerHTML=`<div class="bd-hero"><div class="bd-icon hex">${b.icon}</div><div class="bd-name" id="bdName">${escapeHtml(b.name)}</div>${b.title?`<div class="bd-title">👑 اللقب: ${escapeHtml(b.title)}</div>`:''}</div><div class="bd-block"><h4>🎯 كيف تحصل على الشارة؟</h4><p>${escapeHtml(b.challenge)}</p></div><div class="bd-block bd-reward-box"><h4>🎁 ماذا تحصل عند إتمام الشارة؟</h4><div class="bd-rewards">${rewardHtml}</div></div><div class="bd-block"><h4>🏅 اللاعبون الذين أنجزوا التحدي (${winners.length})</h4><div class="bd-winners">${winnerHtml}</div></div>`;
 }
-
 function openBadgeDrawer(id){
   const b=BADGE_DEFINITIONS.find(x=>x.id===id); if(!b)return;
   renderBadgeDrawer(b);
@@ -1429,12 +1434,16 @@ function renderProfileContent(p){
     </div>`).join("");
 
   const awards = badgeAwardsByUser[String(p.user_id || "")] || [];
-  const profileBadges = awards.map(a => BADGE_DEFINITIONS.find(b => b.id === String(a.badge_id))).filter(Boolean);
+  const uniqueAwards = [];
+  const awardSeen = new Set();
+  awards.forEach(a=>{const bid=String(a.badge_id); if(!awardSeen.has(bid)){awardSeen.add(bid); uniqueAwards.push(a);}});
+  const profileBadges = uniqueAwards.map(a => BADGE_DEFINITIONS.find(b => b.id === String(a.badge_id))).filter(Boolean);
   const badgesHtml = profileBadges.length
-    ? `<div class="pm-badges ${profileBadges.length>=5?'luxe':''}">${profileBadges.map(b => `<div class="pm-badge" title="${escapeHtml(b.name)}"><div class="pb-ic hex">${b.icon}</div><span>${escapeHtml(b.name)}</span><small style="font-size:9px;color:var(--primary-deep);font-weight:900">${escapeHtml(b.title)}</small></div>`).join("")}</div>`
+    ? `<div class="pm-badges ${profileBadges.length>=5?'luxe':''}">${profileBadges.map(b => `<div class="pm-badge" title="${escapeHtml(b.name)}"><div class="pb-ic hex">${b.icon}</div><span>${escapeHtml(b.name)}</span>${b.title?`<small style="font-size:9px;color:var(--primary-deep);font-weight:900">${escapeHtml(b.title)}</small>`:''}</div>`).join("")}</div>`
     : `<div class="pm-empty-note">لا توجد شارات مرتبطة بعد</div>`;
-  const titlesHtml = profileBadges.length
-    ? `<div class="pm-titles">${profileBadges.map(b => `<span class="pm-title-chip current">👑 ${escapeHtml(b.title)}</span>`).join("")}</div>`
+  const titles = profileBadges.filter(b=>b.title);
+  const titlesHtml = titles.length
+    ? `<div class="pm-titles">${titles.map(b => `<span class="pm-title-chip current">👑 ${escapeHtml(b.title)}</span>`).join("")}</div>`
     : `<div class="pm-empty-note">لا توجد ألقاب بعد</div>`;
 
   document.getElementById("pmScroll").innerHTML = `
@@ -1496,24 +1505,25 @@ try{
    PROFILE APPEARANCE — avatars & frames
    ============================================================ */
 const AVATAR_OPTIONS=[
-  {key:'starter',name:'المقاتل البنفسجي',src:'assets/avatars/avatar-starter.svg',unlock:null},
-  {key:'tiger',name:'النمر',src:'assets/avatars/avatar-tiger.svg',unlock:'thousand_wins'},
-  {key:'robot',name:'الحارس الآلي',src:'assets/avatars/avatar-robot.svg',unlock:'arena_legend'},
-  {key:'skull',name:'المحارب المظلل',src:'assets/avatars/avatar-skull.svg',unlock:'invincible_castle'},
-  {key:'star',name:'صياد النجوم',src:'assets/avatars/avatar-star.svg',unlock:'star_hunter'},
-  {key:'crown',name:'البطل الملكي',src:'assets/avatars/avatar-crown.svg',unlock:'season_champion'}
+  {key:'starter',name:'ذراع التحكم البنفسجي',src:'assets/avatars/ps4_controller.png',unlock:null},
+  {key:'pirate_flag',name:'حامل علم القراصنة',src:'assets/avatars/pirate_flag.png',unlock:'arena_legend'},
+  {key:'royal_chicken',name:'الدجاجة الملكية',src:'assets/avatars/royal_chicken.png',unlock:'clan_leader'},
+  {key:'tea_knight',name:'فارس الشاي',src:'assets/avatars/tea_knight.png',unlock:'lightning_speed'},
+  {key:'pirate_skull',name:'جمجمة القراصنة',src:'assets/avatars/pirate_skull.png',unlock:'__locked__'},
+  {key:'ninja',name:'النينجا',src:'assets/avatars/ninja.png',unlock:'__locked__'}
 ];
 const FRAME_OPTIONS=[
   {key:'classic',name:'إطار كلاسيكي',src:'assets/frames/frame-classic.svg',unlock:null},
-  {key:'silver',name:'إطار فضي',src:'assets/frames/frame-silver.svg',unlock:'lightning_speed'},
-  {key:'gold',name:'إطار ذهبي',src:'assets/frames/frame-gold.svg',unlock:'chest_king'},
-  {key:'diamond',name:'إطار ألماسي',src:'assets/frames/frame-diamond.svg',unlock:'clan_leader'},
-  {key:'masters',name:'إطار ماسترز',src:'assets/frames/frame-masters.svg',unlock:'arena_legend'}
+  {key:'bronze',name:'الإطار البرونزي',src:'assets/frames/frame-bronze.png',unlock:'star_hunter'},
+  {key:'silver',name:'الإطار الفضي',src:'assets/frames/frame-silver.png',unlock:'season_champion'},
+  {key:'gold',name:'الإطار الذهبي',src:'assets/frames/frame-gold.png',unlock:'lightning_speed'},
+  {key:'diamond',name:'الإطار الماسي',src:'assets/frames/frame-diamond.png',unlock:'arena_legend'},
+  {key:'masters',name:'إطار الماسترز',src:'assets/frames/frame-masters.png',unlock:'__locked__'}
 ];
 let appearanceMode='avatars', currentPlayerAppearance=null;
 function getAvatarSrc(key,fallback){return (AVATAR_OPTIONS.find(x=>x.key===key)?.src)||fallback||AVATAR_OPTIONS[0].src;}
 function getFrameSrc(key){return FRAME_OPTIONS.find(x=>x.key===key)?.src||null;}
-function unlockedAppearance(item){return !item.unlock || (badgeAwardsByUser[String(verifiedUserId||'')]||[]).some(a=>String(a.badge_id)===item.unlock);}
+function unlockedAppearance(item){return !item.unlock || (item.unlock!=='__locked__' && (badgeAwardsByUser[String(verifiedUserId||'')]||[]).some(a=>String(a.badge_id)===item.unlock));}
 async function loadCurrentPlayerAppearance(){
   if(!sb||!verifiedUserId)return;
   const r=await sb.from('players').select('user_id,avatar_key,frame_key,avatar_url,rank').eq('user_id',verifiedUserId).maybeSingle();
@@ -1523,7 +1533,7 @@ function renderAppearanceGrid(){
   const grid=document.getElementById('appearanceGrid'); if(!grid)return;
   const list=appearanceMode==='avatars'?AVATAR_OPTIONS:FRAME_OPTIONS;
   const current=appearanceMode==='avatars'?(currentPlayerAppearance?.avatar_key||'starter'):(currentPlayerAppearance?.frame_key||'classic');
-  grid.innerHTML=list.map(item=>{const ok=unlockedAppearance(item), selected=current===item.key; return `<button type="button" class="appearance-card ${selected?'selected':''} ${ok?'':'locked'}" ${ok?'':'disabled'} data-appearance-key="${escapeHtml(item.key)}"><div class="appearance-preview">${appearanceMode==='avatars'?`<img src="${escapeHtml(item.src)}" alt="">`:`<div style="width:72px;height:82px;border-radius:50%;background:#F8F6FF;border:1px solid var(--border)"></div>`}<img class="frame-ring" src="${escapeHtml(appearanceMode==='frames'?item.src:(currentPlayerAppearance?.frame_key?getFrameSrc(currentPlayerAppearance.frame_key):FRAME_OPTIONS[0].src))}" alt=""></div><div class="appearance-name">${escapeHtml(item.name)}</div><div class="appearance-hint">${ok?(selected?'مستخدم الآن':'متاح للاختيار'):'🔒 يتطلب إنجازًا'}</div></button>`}).join('');
+  grid.innerHTML=list.map(item=>{const ok=unlockedAppearance(item), selected=current===item.key; return `<button type="button" class="appearance-card ${selected?'selected':''} ${ok?'':'locked'}" ${ok?'':'disabled'} data-appearance-key="${escapeHtml(item.key)}"><div class="appearance-preview">${appearanceMode==='avatars'?`<img src="${escapeHtml(item.src)}" alt="">`:`<img src="${escapeHtml(getAvatarSrc(currentPlayerAppearance?.avatar_key))}" alt="">`}<img class="frame-ring" src="${escapeHtml(appearanceMode==='frames'?item.src:(currentPlayerAppearance?.frame_key?getFrameSrc(currentPlayerAppearance.frame_key):FRAME_OPTIONS[0].src))}" alt=""></div><div class="appearance-name">${escapeHtml(item.name)}</div><div class="appearance-hint">${ok?(selected?'مستخدم الآن':'متاح للاختيار'):'🔒 يتطلب إنجازًا'}</div></button>`}).join('');
   grid.querySelectorAll('[data-appearance-key]').forEach(btn=>btn.addEventListener('click',()=>selectAppearance(btn.dataset.appearanceKey)));
 }
 async function selectAppearance(key){
