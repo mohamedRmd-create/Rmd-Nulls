@@ -251,7 +251,7 @@
     border-bottom:1px solid var(--border); flex-shrink:0;
   }
   .pm-avatar{
-    width:84px; height:96px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center;
+    width:96px; height:96px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center;
     font-size:34px; color:#fff; background:linear-gradient(145deg,var(--primary),var(--primary-deep));
     box-shadow:0 10px 24px rgba(91,50,214,.3); overflow:hidden;
   }
@@ -278,7 +278,7 @@
 
   /* skeleton loading state */
   .pm-skel{ padding:34px 24px 30px; }
-  .pm-skel-avatar{ width:84px; height:96px; margin:0 auto 16px; border-radius:2px; }
+  .pm-skel-avatar{ width:96px; height:96px; margin:0 auto 16px; border-radius:2px; }
   .pm-skel-line{ height:14px; border-radius:8px; margin:0 auto; }
   .sk{ background:linear-gradient(90deg,#EFEAFF 25%,#F6F2FF 37%,#EFEAFF 63%); background-size:400% 100%; animation:skShimmer 1.4s ease infinite; }
   @keyframes skShimmer{ 0%{background-position:100% 0;} 100%{background-position:0 0;} }
@@ -403,19 +403,18 @@
   .appearance-card:hover{transform:translateY(-3px);border-color:#CFC2FF;}
   .appearance-card.selected{outline:3px solid rgba(124,77,255,.18);border-color:var(--primary);}
   .appearance-card.locked{opacity:.45;filter:grayscale(.55);cursor:not-allowed;}
-  .appearance-preview{width:78px;height:90px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;position:relative;}
-  .appearance-preview img{width:72px;height:82px;object-fit:cover;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
-  .appearance-preview .frame-ring{position:absolute;inset:-3px;border:4px solid #C9C3D8;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);pointer-events:none;}
+  .appearance-preview{width:90px;height:90px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;position:relative;}
+  .appearance-preview img{width:90px;height:90px;object-fit:fill;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
+  .appearance-preview .frame-ring{position:absolute;inset:0;width:90px;height:90px;object-fit:fill;pointer-events:none;clip-path:none;z-index:2;}
   .appearance-name{font-weight:900;font-size:11px;color:var(--ink);}
   .appearance-hint{font-size:9px;color:var(--ink-soft);margin-top:3px;}
   .appearance-tabs{display:flex;gap:8px;margin-top:16px;}
   .appearance-tab{flex:1;border:1px solid var(--border);background:#FAF8FF;color:var(--ink-soft);border-radius:12px;padding:10px;font:800 12px Cairo;cursor:pointer;}
   .appearance-tab.active{background:#F0EAFF;color:var(--primary-deep);border-color:#CFC2FF;}
   .appearance-note{background:linear-gradient(160deg,#F2ECFF,#FFF9EA);border:1px solid var(--border);border-radius:18px;padding:14px 16px;font-size:11px;color:var(--ink-soft);line-height:1.8;margin-top:14px;}
-  .pm-avatar{position:relative;}
-  .pm-avatar .pm-frame{position:absolute;inset:-2px;width:calc(100% + 4px);height:calc(100% + 4px);object-fit:cover;pointer-events:none;}
-  .pm-avatar img.pm-avatar-image{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
-  .pm-avatar .pm-frame{z-index:2;}
+  .pm-avatar{position:relative;width:96px;height:96px;overflow:visible;clip-path:none;background:none;box-shadow:none;}
+  .pm-avatar img.pm-avatar-image{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:fill;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
+  .pm-avatar .pm-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;z-index:2;clip-path:none;}
   .pm-badge .pb-ic{box-shadow:0 6px 15px rgba(255,174,0,.18);}
   .pm-badge .pb-ic.hex{clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
   .pm-badges.luxe{padding:12px;border-radius:18px;background:radial-gradient(circle at 50% 0,#FFF4C9,transparent 58%),#FBFAFF;border:1px solid #F0D98B;box-shadow:inset 0 0 0 1px rgba(255,201,60,.15),0 10px 25px rgba(255,201,60,.12);}
@@ -428,7 +427,7 @@
   .player-badges-inline{display:flex;align-items:center;gap:4px;min-width:0;}
   .player-badges-inline .more{font-size:9px;font-weight:900;color:var(--primary-deep);}
   @media(max-width:900px){.appearance-grid{grid-template-columns:repeat(3,1fr);}}
-  @media(max-width:640px){.appearance-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.appearance-card{padding:11px;}.appearance-preview{width:68px;height:78px;}.appearance-preview img{width:62px;height:70px;}.player-badge-mini{width:24px;height:28px;font-size:12px;}}
+  @media(max-width:640px){.appearance-grid{grid-template-columns:repeat(2,1fr);gap:10px;}.appearance-card{padding:11px;}.appearance-preview{width:78px;height:78px;}.appearance-preview img,.appearance-preview .frame-ring{width:78px;height:78px;}.player-badge-mini{width:24px;height:28px;font-size:12px;}}
 
   .verify-back{
     display:inline-flex; align-items:center; gap:8px; background:#F5F1FF; color:var(--ink-soft);
@@ -1448,7 +1447,7 @@ function renderProfileContent(p){
 
   document.getElementById("pmScroll").innerHTML = `
     <div class="pm-head">
-      <div class="pm-avatar hex">${avatar}${frameSrc?`<img class="pm-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}</div>
+      <div class="pm-avatar">${avatar}${frameSrc?`<img class="pm-frame" src="${escapeHtml(frameSrc)}" alt="">`:''}</div>
       <div class="pm-name" id="pmName">${name}</div>
       ${p.player_tag ? `<div class="pm-tag">${escapeHtml(p.player_tag)}</div>` : ""}
       ${p.social_username ? `<div class="pm-tag" style="direction:ltr;text-align:right">${escapeHtml(p.social_username)}</div>` : ""}
