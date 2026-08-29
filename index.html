@@ -405,6 +405,7 @@
   .appearance-card.locked{opacity:.45;filter:grayscale(.55);cursor:not-allowed;}
   .appearance-preview{width:90px;height:90px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;position:relative;}
   .appearance-preview img{width:90px;height:90px;object-fit:fill;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
+  /* Avatar selection: show the avatar by itself. Frames are previewed only in the Frames tab. */
   .appearance-preview .frame-ring{position:absolute;inset:0;width:90px;height:90px;object-fit:fill;pointer-events:none;clip-path:none;z-index:2;}
   .appearance-name{font-weight:900;font-size:11px;color:var(--ink);}
   .appearance-hint{font-size:9px;color:var(--ink-soft);margin-top:3px;}
@@ -413,7 +414,8 @@
   .appearance-tab.active{background:#F0EAFF;color:var(--primary-deep);border-color:#CFC2FF;}
   .appearance-note{background:linear-gradient(160deg,#F2ECFF,#FFF9EA);border:1px solid var(--border);border-radius:18px;padding:14px 16px;font-size:11px;color:var(--ink-soft);line-height:1.8;margin-top:14px;}
   .pm-avatar{position:relative;width:96px;height:96px;overflow:visible;clip-path:none;background:none;box-shadow:none;}
-  .pm-avatar img.pm-avatar-image{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:fill;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
+  .pm-avatar img.pm-avatar-image{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:fill;clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);border-radius:0;}
+  /* Only an actually selected frame is rendered; the old silver/default ring is removed. */
   .pm-avatar .pm-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none;z-index:2;clip-path:none;}
   .pm-badge .pb-ic{box-shadow:0 6px 15px rgba(255,174,0,.18);}
   .pm-badge .pb-ic.hex{clip-path:polygon(25% 0%,75% 0%,100% 50%,75% 100%,25% 100%,0 50%);}
@@ -1512,7 +1514,7 @@ const AVATAR_OPTIONS=[
   {key:'ninja',name:'النينجا',src:'assets/avatars/ninja.png',unlock:'__locked__'}
 ];
 const FRAME_OPTIONS=[
-  {key:'classic',name:'إطار كلاسيكي',src:'assets/frames/frame-classic.svg',unlock:null},
+  {key:'classic',name:'بدون إطار',src:null,unlock:null},
   {key:'bronze',name:'الإطار البرونزي',src:'assets/frames/frame-bronze.png',unlock:'star_hunter'},
   {key:'silver',name:'الإطار الفضي',src:'assets/frames/frame-silver.png',unlock:'season_champion'},
   {key:'gold',name:'الإطار الذهبي',src:'assets/frames/frame-gold.png',unlock:'lightning_speed'},
@@ -1526,24 +1528,45 @@ function unlockedAppearance(item){return !item.unlock || (item.unlock!=='__locke
 async function loadCurrentPlayerAppearance(){
   if(!sb||!verifiedUserId)return;
   const r=await sb.from('players').select('user_id,avatar_key,frame_key,avatar_url,rank').eq('user_id',verifiedUserId).maybeSingle();
-  if(!r.error){currentPlayerAppearance=r.data||null; renderAppearanceGrid();}
+  if(r.error){console.error('loadCurrentPlayerAppearance:',r.error);return;}
+  currentPlayerAppearance=r.data||{user_id:verifiedUserId,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
+  renderAppearanceGrid();
 }
 function renderAppearanceGrid(){
   const grid=document.getElementById('appearanceGrid'); if(!grid)return;
   const list=appearanceMode==='avatars'?AVATAR_OPTIONS:FRAME_OPTIONS;
   const current=appearanceMode==='avatars'?(currentPlayerAppearance?.avatar_key||'starter'):(currentPlayerAppearance?.frame_key||'classic');
-  grid.innerHTML=list.map(item=>{const ok=unlockedAppearance(item), selected=current===item.key; return `<button type="button" class="appearance-card ${selected?'selected':''} ${ok?'':'locked'}" ${ok?'':'disabled'} data-appearance-key="${escapeHtml(item.key)}"><div class="appearance-preview">${appearanceMode==='avatars'?`<img src="${escapeHtml(item.src)}" alt="">`:`<img src="${escapeHtml(getAvatarSrc(currentPlayerAppearance?.avatar_key))}" alt="">`}<img class="frame-ring" src="${escapeHtml(appearanceMode==='frames'?item.src:(currentPlayerAppearance?.frame_key?getFrameSrc(currentPlayerAppearance.frame_key):FRAME_OPTIONS[0].src))}" alt=""></div><div class="appearance-name">${escapeHtml(item.name)}</div><div class="appearance-hint">${ok?(selected?'مستخدم الآن':'متاح للاختيار'):'🔒 يتطلب إنجازًا'}</div></button>`}).join('');
-  grid.querySelectorAll('[data-appearance-key]').forEach(btn=>btn.addEventListener('click',()=>selectAppearance(btn.dataset.appearanceKey)));
+  const currentAvatar=getAvatarSrc(currentPlayerAppearance?.avatar_key);
+  const currentFrame=currentPlayerAppearance?.frame_key ? getFrameSrc(currentPlayerAppearance.frame_key) : null;
+  grid.innerHTML=list.map(item=>{
+    const ok=unlockedAppearance(item), selected=current===item.key;
+    const avatarHtml=appearanceMode==='avatars'
+      ? `<img src="${escapeHtml(item.src)}" alt="">`
+      : `<img src="${escapeHtml(currentAvatar)}" alt="">`;
+    // IMPORTANT: avatar cards never receive a frame overlay. This removes the old silver hexagon.
+    const frameHtml=appearanceMode==='frames' && item.src
+      ? `<img class="frame-ring" src="${escapeHtml(item.src)}" alt="">`
+      : '';
+    return `<button type="button" class="appearance-card ${selected?'selected':''} ${ok?'':'locked'}" ${ok?'':'disabled'} data-appearance-key="${escapeHtml(item.key)}"><div class="appearance-preview">${avatarHtml}${frameHtml}</div><div class="appearance-name">${escapeHtml(item.name)}</div><div class="appearance-hint">${ok?(selected?'مستخدم الآن':'متاح للاختيار'):'🔒 يتطلب إنجازًا'}</div></button>`;
+  }).join('');
+  grid.querySelectorAll('[data-appearance-key]').forEach(btn=>{
+    btn.addEventListener('click',function(e){ e.preventDefault(); selectAppearance(this.dataset.appearanceKey); });
+  });
 }
 async function selectAppearance(key){
-  if(!verifiedUserId||!currentPlayerAppearance)return;
+  if(!verifiedUserId){alert('يجب تسجيل الدخول أولاً.');return;}
   const list=appearanceMode==='avatars'?AVATAR_OPTIONS:FRAME_OPTIONS, item=list.find(x=>x.key===key);
   if(!item||!unlockedAppearance(item))return;
-  const payload=appearanceMode==='avatars'?{p_avatar_key:key,p_frame_key:currentPlayerAppearance.frame_key||'classic'}:{p_avatar_key:currentPlayerAppearance.avatar_key||'starter',p_frame_key:key};
+  // Do not require the previous appearance row to have loaded before allowing a click.
+  const current=currentPlayerAppearance||{user_id:verifiedUserId,avatar_key:'starter',frame_key:'classic',avatar_url:null};
+  const payload=appearanceMode==='avatars'
+    ? {p_avatar_key:key,p_frame_key:current.frame_key||'classic'}
+    : {p_avatar_key:current.avatar_key||'starter',p_frame_key:key};
   const r=await sb.rpc('set_player_appearance',payload);
-  if(r.error){alert('تعذر حفظ المظهر: '+r.error.message);return;}
-  currentPlayerAppearance={...currentPlayerAppearance,...(appearanceMode==='avatars'?{avatar_key:key}:{frame_key:key})};
-  renderAppearanceGrid(); await loadDashboard();
+  if(r.error){console.error('set_player_appearance:',r.error);alert('تعذر حفظ المظهر: '+r.error.message);return;}
+  currentPlayerAppearance={...current,...(appearanceMode==='avatars'?{avatar_key:key}:{frame_key:key})};
+  renderAppearanceGrid();
+  await loadDashboard();
 }
 function openAppearancePage(){
   closeAcctDropdown(); closeMobileMenu();
