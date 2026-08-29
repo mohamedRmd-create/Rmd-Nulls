@@ -833,24 +833,6 @@
 </div>
 
 
-try{
-  document.addEventListener("click",e=>{
-    const clanCard=e.target.closest("[data-clan-id]");
-    if(clanCard){openClanProfile(clanCard.dataset.clanId);return;}
-    const pod=e.target.closest("[data-podium-player]");
-    if(pod){openPlayerProfile(pod.dataset.podiumPlayer);return;}
-    const member=e.target.closest("[data-clan-player]");
-    if(member){closeClanProfile();setTimeout(()=>openPlayerProfile(member.dataset.clanPlayer),190);}
-  });
-  document.addEventListener("keydown",e=>{
-    if((e.key==="Enter"||e.key===" ") && e.target.closest("[data-clan-id]")){e.preventDefault();openClanProfile(e.target.closest("[data-clan-id]").dataset.clanId);}
-    if((e.key==="Enter"||e.key===" ") && e.target.closest("[data-podium-player]")){e.preventDefault();openPlayerProfile(e.target.closest("[data-podium-player]").dataset.podiumPlayer);}
-    if(e.key==="Escape")closeClanProfile();
-  });
-  document.getElementById("clanCloseBtn")?.addEventListener("click",closeClanProfile);
-  document.getElementById("clanModalOverlay")?.addEventListener("click",e=>{if(e.target.id==="clanModalOverlay")closeClanProfile();});
-}catch(e){console.error(e);}
-
 <!-- ================= PLAYER PROFILE MODAL ================= -->
 <div id="playerModalOverlay" role="dialog" aria-modal="true" aria-labelledby="pmName">
   <div class="player-modal" id="playerModalCard">
@@ -871,6 +853,59 @@ const SUPABASE_ANON_KEY = "sb_publishable_Fyk5kX_1zrd_0Oqg0pMVGw_hL2rWx_G";
 const sb = (SUPABASE_URL.startsWith("http"))
   ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
+
+/* ============================================================
+   CLAN / PODIUM / PLAYER INTERACTIONS
+   This block must run inside the JavaScript script. In the previous
+   build it was accidentally placed as plain HTML text, which made
+   the source code appear on the page and could interfere with UI.
+   ============================================================ */
+try{
+  document.addEventListener("click", e => {
+    const clanCard = e.target.closest("[data-clan-id]");
+    if(clanCard){ openClanProfile(clanCard.dataset.clanId); return; }
+
+    const pod = e.target.closest("[data-podium-player]");
+    if(pod){ openPlayerProfile(pod.dataset.podiumPlayer); return; }
+
+    const member = e.target.closest("[data-clan-player]");
+    if(member){
+      closeClanProfile();
+      setTimeout(() => openPlayerProfile(member.dataset.clanPlayer), 190);
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if((e.key === "Enter" || e.key === " ") && e.target.closest("[data-clan-id]")){
+      e.preventDefault();
+      openClanProfile(e.target.closest("[data-clan-id]").dataset.clanId);
+    }
+    if((e.key === "Enter" || e.key === " ") && e.target.closest("[data-podium-player]")){
+      e.preventDefault();
+      openPlayerProfile(e.target.closest("[data-podium-player]").dataset.podiumPlayer);
+    }
+    if(e.key === "Escape") closeClanProfile();
+  });
+
+  document.getElementById("clanCloseBtn")?.addEventListener("click", closeClanProfile);
+  document.getElementById("clanModalOverlay")?.addEventListener("click", e => {
+    if(e.target.id === "clanModalOverlay") closeClanProfile();
+  });
+}catch(e){ console.error("Clan/player interaction setup:", e); }
+
+/* Reliable sidebar navigation fallback. The radio-label system remains
+   the primary navigation, while these listeners make navigation robust
+   even if a browser has trouble with CSS :has(). */
+try{
+  document.querySelectorAll(".sidebar .nav-item[for]").forEach(label => {
+    label.addEventListener("click", () => {
+      const targetId = label.getAttribute("for");
+      const target = document.getElementById(targetId);
+      if(target) target.checked = true;
+      closeMobileMenu();
+    });
+  });
+}catch(e){ console.error("Sidebar navigation setup:", e); }
 
 function closeMobileMenu(){
   const m = document.getElementById("menuToggle");
