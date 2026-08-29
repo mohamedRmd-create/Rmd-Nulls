@@ -95,24 +95,50 @@ async function createTestPlayer(){
 function renderTestPlayers(){
   const area=document.getElementById('testPlayersArea'); if(!area)return;
   const tests=verifiedPlayers.filter(p=>p.is_test_player===true);
-  area.innerHTML=tests.length ? `<div style="padding:0 20px 18px"><div class="table-wrap"><table style="min-width:760px"><thead><tr><th>اللاعب</th><th>الكؤوس</th><th>الانتصارات</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${tests.map(p=>`<tr><td class="user">${esc(p.username)}</td><td>${Number(p.trophies||0).toLocaleString('en-US')}</td><td>${Number(p.wins||0).toLocaleString('en-US')}</td><td><span class="status approved">تجريبي</span></td><td><button class="btn red player-delete" onclick="deletePlayer('${esc(p.user_id)}')">🗑️ حذف</button></td></tr>`).join('')}</tbody></table></div></div>` : '<div class="empty" style="padding:25px">لم تنشئ لاعبين تجريبيين بعد.</div>';
+  area.innerHTML=tests.length ? `<div style="padding:0 20px 18px"><div class="table-wrap"><table style="min-width:760px"><thead><tr><th>اللاعب</th><th>الكؤوس</th><th>الانتصارات</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>${tests.map(p=>`<tr><td class="user">${esc(p.username)}</td><td>${Number(p.trophies||0).toLocaleString('en-US')}</td><td>${Number(p.wins||0).toLocaleString('en-US')}</td><td><span class="status approved">تجريبي</span></td><td><button type="button" class="btn red player-delete" data-delete-player="${esc(p.user_id)}">🗑️ حذف</button></td></tr>`).join('')}</tbody></table></div></div>` : '<div class="empty" style="padding:25px">لم تنشئ لاعبين تجريبيين بعد.</div>';
 }
 function renderDeletePlayers(){
   const area=document.getElementById('deletePlayersArea'); if(!area)return;
   const q=(document.getElementById('deletePlayerSearch')?.value||'').trim().toLowerCase();
   const list=verifiedPlayers.filter(p=>String(p.username||'').toLowerCase().includes(q));
-  area.innerHTML=list.length?`<div class="table-wrap"><table style="min-width:700px"><thead><tr><th>اللاعب</th><th>الحالة</th><th>الكؤوس</th><th>الانتصارات</th><th>إجراء</th></tr></thead><tbody>${list.map(p=>`<tr><td class="user">${esc(p.username)}</td><td><span class="status ${p.verified?'approved':'pending'}">${p.verified?'موثق':'غير موثق'}</span>${p.is_test_player?'<span style="font-size:9px;color:var(--primary-deep);margin-right:5px">🧪 تجريبي</span>':''}</td><td>${Number(p.trophies||0).toLocaleString('en-US')}</td><td>${Number(p.wins||0).toLocaleString('en-US')}</td><td><button class="btn red player-delete" onclick="deletePlayer('${esc(p.user_id)}')">🗑️ حذف</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:25px">لا توجد نتائج.</div>';
+  area.innerHTML=list.length?`<div class="table-wrap"><table style="min-width:700px"><thead><tr><th>اللاعب</th><th>الحالة</th><th>الكؤوس</th><th>الانتصارات</th><th>إجراء</th></tr></thead><tbody>${list.map(p=>`<tr><td class="user">${esc(p.username)}</td><td><span class="status ${p.verified?'approved':'pending'}">${p.verified?'موثق':'غير موثق'}</span>${p.is_test_player?'<span style="font-size:9px;color:var(--primary-deep);margin-right:5px">🧪 تجريبي</span>':''}</td><td>${Number(p.trophies||0).toLocaleString('en-US')}</td><td>${Number(p.wins||0).toLocaleString('en-US')}</td><td><button type="button" class="btn red player-delete" data-delete-player="${esc(p.user_id)}">🗑️ حذف</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty" style="padding:25px">لا توجد نتائج.</div>';
 }
-function setupPlayerDelete(){const el=document.getElementById('deletePlayerSearch');if(el)el.oninput=renderDeletePlayers;renderDeletePlayers();}
+function setupPlayerDelete(){
+  const search=document.getElementById('deletePlayerSearch');
+  if(search) search.oninput=renderDeletePlayers;
+  const area=document.getElementById('deletePlayersArea');
+  if(area && !area.dataset.deleteBound){
+    area.dataset.deleteBound='1';
+    area.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-delete-player]');
+      if(!btn)return;
+      e.preventDefault();
+      deletePlayer(btn.dataset.deletePlayer);
+    });
+  }
+  renderDeletePlayers();
+}
 async function deletePlayer(uid){
-  const p=verifiedPlayers.find(x=>String(x.user_id)===String(uid)); if(!p)return;
+  const p=verifiedPlayers.find(x=>String(x.user_id)===String(uid));
+  if(!p){alert('تعذر العثور على اللاعب في القائمة. اضغط تحديث ثم حاول مرة أخرى.');return;}
   const warning=p.verified?'هذا اللاعب موثق. تأكد أنك تريد حذفه فعلاً.':'سيتم حذف اللاعب غير الموثق وبياناته من الموقع.';
   if(!confirm(`⚠️ ${warning}\n\nاللاعب: ${p.username}\n\nهل تريد المتابعة؟`))return;
-  const {error}=await sb.rpc('admin_delete_player',{p_user_id:uid});
-  if(error){alert('تعذر حذف اللاعب: '+error.message);return;}
-  alert('تم حذف اللاعب من الموقع بنجاح.');
-  await loadBadgeManager();
-  await loadRequests();
+  const buttons=[...document.querySelectorAll('[data-delete-player]')];
+  buttons.forEach(b=>{if(b.dataset.deletePlayer===String(uid)){b.disabled=true;b.textContent='⏳ جارِ الحذف...';}});
+  try{
+    const {data,error}=await sb.rpc('admin_delete_player',{p_user_id:uid});
+    if(error) throw error;
+    if(data!==true && data!==null && data!==undefined) console.warn('admin_delete_player result:',data);
+    alert('تم حذف اللاعب من الموقع بنجاح.');
+    await loadBadgeManager();
+    await loadRequests();
+  }catch(error){
+    console.error('admin_delete_player:',error);
+    alert('تعذر حذف اللاعب\n\nالسبب من قاعدة البيانات:\n'+(error?.message||String(error))+'\n\nإذا كان اللاعب قديمًا، شغّل ملف SQL المحدث مرة واحدة في Supabase SQL Editor.');
+    renderDeletePlayers();
+  }finally{
+    buttons.forEach(b=>{if(b.dataset.deletePlayer===String(uid)){b.disabled=false;b.textContent='🗑️ حذف';}});
+  }
 }
 
 let seasonAdminSettings=null;
