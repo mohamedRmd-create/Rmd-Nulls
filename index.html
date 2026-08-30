@@ -307,6 +307,7 @@
   .pm-avatar img{ width:100%; height:100%; object-fit:cover; }
   .pm-name{ font-family:'Lalezar'; font-size:26px; color:var(--ink); word-break:break-word; }
   .pm-tag{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin-top:2px; }
+  .pm-social{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin-top:3px; text-align:center; direction:ltr; width:100%; }
   .pm-clan{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:#EFE7FF; color:var(--primary-deep); font-weight:800; font-size:11.5px; padding:6px 14px; border-radius:20px; }
   .pm-body{ padding:22px 24px 26px; }
   .pm-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
@@ -1740,7 +1741,7 @@ function renderProfileContent(p){
       <div class="pm-avatar">${avatar}</div>
       <div class="pm-name" id="pmName">${name}</div>
       ${p.player_tag ? `<div class="pm-tag">${escapeHtml(p.player_tag)}</div>` : ""}
-      ${p.social_username ? `<div class="pm-tag" style="direction:ltr;text-align:right">${escapeHtml(p.social_username)}</div>` : ""}
+      ${p.social_username ? `<div class="pm-social" dir="ltr">${escapeHtml(p.social_username)}</div>` : ""}
       ${p.verified ? '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:#E8FAF2;color:#149E77;border:1px solid #BFEAD6;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;">✓ موثق</div>' : ''}<div class="pm-rank rank-${ri.cls}">${ri.icon} رتبة ${ri.label}</div>
       ${clan}
     </div>
