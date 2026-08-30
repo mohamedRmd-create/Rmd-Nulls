@@ -334,19 +334,31 @@ function renderTable(){
 async function openRequest(id){
   selectedRequest=requests.find(r=>String(r.id)===String(id));if(!selectedRequest)return;
   const p=playersByUser[selectedRequest.user_id]||{};
-  document.getElementById('modalTitle').textContent=(selectedRequest.request_type==='data_update'?'مراجعة تحديث معلومات: ':'مراجعة طلب: ')+(p.username||'لاعب');
-  document.getElementById('modalNotice').innerHTML=selectedRequest.auto_decision_reason?`<div class="auto-review-note">🤖 نتيجة الفحص الآلي: ${esc(selectedRequest.auto_decision_reason)}</div>`:'';
-  const typeLabel=selectedRequest.request_type==='data_update'?'تحديث معلومات بالصور':'توثيق الحساب';
+  const isUpdate=selectedRequest.request_type==='data_update';
+  document.getElementById('modalTitle').textContent=(isUpdate?'مراجعة تحديث معلومات: ':'مراجعة طلب: ')+(p.username||'لاعب');
+  document.getElementById('modalNotice').innerHTML=isUpdate?`<div class="auto-review-note">📝 هذا طلب تحديث يدوي. راجع الصورتين ثم املأ الحقول يدويًا واضغط موافقة. لن يتم اعتماد أي رقم تلقائيًا.</div>`:(selectedRequest.auto_decision_reason?`<div class="auto-review-note">🤖 نتيجة الفحص الآلي: ${esc(selectedRequest.auto_decision_reason)}</div>`:'');
+  const typeLabel=isUpdate?'تحديث معلومات بالصور':'توثيق الحساب';
   const ocr=selectedRequest.ocr_extracted_json||{};
   const extracted=ocr.parsed||{};
-  const details=`<div class="detail"><label>اسم اللاعب</label><div>${esc(p.username||'—')}</div></div><div class="detail"><label>User ID</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.user_id||'—')}</div></div><div class="detail"><label>نوع الطلب</label><div>${typeLabel}</div></div><div class="detail"><label>الكؤوس الحالية</label><div>${extracted.trophies==null?'—':Number(extracted.trophies).toLocaleString('en-US')}</div></div><div class="detail"><label>أعلى كؤوس</label><div>${extracted.highest_trophies==null?'—':Number(extracted.highest_trophies).toLocaleString('en-US')}</div></div><div class="detail"><label>الانتصارات</label><div>${extracted.wins==null?Number(selectedRequest.wins||0).toLocaleString('en-US'):Number(extracted.wins).toLocaleString('en-US')}</div></div><div class="detail"><label>الرانك الحالي</label><div>${extracted.current_rank==null?'—':Number(extracted.current_rank).toLocaleString('en-US')}</div></div><div class="detail"><label>Player Tag</label><div dir="ltr" style="text-align:right">${esc(extracted.player_tag||selectedRequest.player_tag||'—')}</div></div><div class="detail"><label>الحالة</label><div><span class="status ${statusClass(selectedRequest.status)}">${statusLabel(selectedRequest.status)}</span></div></div><div class="detail"><label>تاريخ الطلب</label><div>${esc(fmtDate(selectedRequest.created_at))}</div></div>`;
-  document.getElementById('modalDetails').innerHTML=details+`<div class="proof"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">الصورة الأولى — الكؤوس</label><div class="proof-img-1" style="padding:25px;color:#6C63A6">جارِ تحميل الصورة...</div></div><div class="proof"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">الصورة الثانية — الانتصارات والرانك</label><div class="proof-img-2" style="padding:25px;color:#6C63A6">جارِ تحميل الصورة...</div></div><div class="notes"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">ملاحظات المشرف</label><textarea class="field" id="adminNotes" placeholder="اكتب ملاحظاتك هنا...">${esc(selectedRequest.admin_notes||'')}</textarea></div>`;
-  document.getElementById('approveBtn').style.display=selectedRequest.status==='approved'?'none':'block';document.getElementById('rejectBtn').style.display=selectedRequest.status==='rejected'?'none':'block';
+  const val=(x)=>x==null?'':String(x);
+  const manualFields=isUpdate?`
+    <div class="detail"><label>اسم اللاعب — تعديل يدوي</label><input class="field review-input" id="reviewUsername" value="" placeholder="اكتب الاسم كما يظهر في الصورة"></div>
+    <div class="detail"><label>Player Tag — تعديل يدوي</label><input class="field review-input" id="reviewPlayerTag" dir="ltr" style="text-align:right" value="" placeholder="#XXXXXXXX"></div>
+    <div class="detail"><label>الكؤوس الحالية — تعديل يدوي</label><input class="field review-input" id="reviewTrophies" type="number" min="0" value="" placeholder="مثال: 25000"></div>
+    <div class="detail"><label>أعلى كؤوس — تعديل يدوي</label><input class="field review-input" id="reviewBestTrophies" type="number" min="0" value="" placeholder="مثال: 30000"></div>
+    <div class="detail"><label>الانتصارات — تعديل يدوي</label><input class="field review-input" id="reviewWins" type="number" min="0" value="" placeholder="عدد الانتصارات"></div>
+    <div class="detail"><label>الرانك الحالي — تعديل يدوي</label><input class="field review-input" id="reviewRank" type="number" min="0" value="" placeholder="الرانك"></div>
+    <div class="detail"><label>الكلان — تعديل يدوي (اختياري)</label><input class="field review-input" id="reviewClan" value="" placeholder="اسم الكلان أو اتركه فارغًا إذا لا يوجد"></div>
+    <div class="detail"><label>ملاحظة</label><div style="font-size:11px;line-height:1.8;color:var(--ink-soft)">الحقول فارغة عمدًا. استخدم الصورتين المرفقتين كمصدر، ثم املأ القيم التي تريد اعتمادها.</div></div>`:'';
+  const details=`<div class="detail"><label>اسم اللاعب الحالي</label><div>${esc(p.username||'—')}</div></div><div class="detail"><label>User ID</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.user_id||'—')}</div></div><div class="detail"><label>نوع الطلب</label><div>${typeLabel}</div></div><div class="detail"><label>Player Tag الحالي</label><div dir="ltr" style="text-align:right">${esc(selectedRequest.player_tag||p.player_tag||'—')}</div></div><div class="detail"><label>الكؤوس الحالية المسجلة</label><div>${p.trophies==null?'—':Number(p.trophies).toLocaleString('en-US')}</div></div><div class="detail"><label>أعلى كؤوس مسجلة</label><div>${p.best_trophies==null?'—':Number(p.best_trophies).toLocaleString('en-US')}</div></div><div class="detail"><label>الانتصارات المسجلة</label><div>${p.wins==null?'—':Number(p.wins).toLocaleString('en-US')}</div></div><div class="detail"><label>الرانك المسجل</label><div>${p.current_rank==null?'—':Number(p.current_rank).toLocaleString('en-US')}</div></div><div class="detail"><label>الحالة</label><div><span class="status ${statusClass(selectedRequest.status)}">${statusLabel(selectedRequest.status)}</span></div></div><div class="detail"><label>تاريخ الطلب</label><div>${esc(fmtDate(selectedRequest.created_at))}</div></div>`;
+  document.getElementById('modalDetails').innerHTML=details+manualFields+`<div class="proof"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">📷 الصورة الأولى</label><div class="proof-img-1" style="padding:25px;color:#6C63A6">جارِ تحميل الصورة...</div></div><div class="proof"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">📷 الصورة الثانية</label><div class="proof-img-2" style="padding:25px;color:#6C63A6">جارِ تحميل الصورة...</div></div><div class="notes"><label style="display:block;font-size:11px;font-weight:900;margin-bottom:8px">ملاحظات المشرف</label><textarea class="field" id="adminNotes" placeholder="اكتب ملاحظاتك هنا..."></textarea></div>`;
+  document.getElementById('approveBtn').style.display=selectedRequest.status==='approved'?'none':'block';
+  document.getElementById('rejectBtn').style.display=selectedRequest.status==='rejected'?'none':'block';
   document.getElementById('modalOverlay').classList.add('show');
   async function loadProof(path,selector,label){
     const box=document.querySelector(selector); if(!box)return;
     if(!path){box.innerHTML='<div style="padding:25px;color:#6C63A6">لا توجد صورة مرفقة.</div>';return;}
-    const {data,error}=await sb.storage.from(VERIFY_BUCKET).createSignedUrl(path,300);
+    const {data,error}=await sb.storage.from(VERIFY_BUCKET).createSignedUrl(path,900);
     if(error){box.innerHTML='<div style="padding:25px;color:#D6336C">تعذر عرض الصورة: '+esc(error.message)+'</div>';return;}
     box.innerHTML='<img src="'+esc(data.signedUrl)+'" alt="'+esc(label)+'">';
   }
@@ -356,34 +368,47 @@ async function openRequest(id){
 async function review(status){
   if(!selectedRequest)return;
   const notes=document.getElementById('adminNotes')?.value?.trim()||null;
-  const msg=status==='approved'?'هل أنت متأكد من قبول هذا الحساب وتوثيقه؟':'هل أنت متأكد من رفض طلب التوثيق؟';
+  const isUpdate=selectedRequest.request_type==='data_update';
+  let manual=null;
+  if(status==='approved' && isUpdate){
+    const username=document.getElementById('reviewUsername')?.value?.trim()||'';
+    const playerTag=document.getElementById('reviewPlayerTag')?.value?.trim()||'';
+    const trophies=document.getElementById('reviewTrophies')?.value?.trim()||'';
+    const bestTrophies=document.getElementById('reviewBestTrophies')?.value?.trim()||'';
+    const wins=document.getElementById('reviewWins')?.value?.trim()||'';
+    const rank=document.getElementById('reviewRank')?.value?.trim()||'';
+    const clan=document.getElementById('reviewClan')?.value?.trim()||null;
+    if(!username||!playerTag||trophies===''||bestTrophies===''||wins===''||rank===''){
+      alert('قبل الموافقة، املأ: اسم اللاعب، Player Tag، الكؤوس الحالية، أعلى كؤوس، الانتصارات والرانك. الكلان اختياري.');return;
+    }
+    const nums=[trophies,bestTrophies,wins,rank].map(Number);
+    if(nums.some(n=>!Number.isFinite(n)||n<0)){alert('تأكد أن قيم الكؤوس والانتصارات والرانك أرقام صحيحة.');return;}
+    if(nums[1]<nums[0]){alert('أعلى الكؤوس لا يمكن أن تكون أقل من الكؤوس الحالية.');return;}
+    manual={username,playerTag,trophies:nums[0],bestTrophies:nums[1],wins:nums[2],rank:nums[3],clan};
+  }
+  const msg=status==='approved'?(isUpdate?'هل أنت متأكد من اعتماد البيانات التي أدخلتها وتحديث حساب اللاعب؟':'هل أنت متأكد من قبول هذا الحساب وتوثيقه؟'):'هل أنت متأكد من رفض الطلب؟';
   if(!confirm(msg))return;
   document.getElementById('approveBtn').disabled=true;document.getElementById('rejectBtn').disabled=true;
-  const update={status,admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id};
-  if(status==='rejected')update.rejection_reason=notes;
-  const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
-  if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
-  if(status==='approved'){
-    if(selectedRequest.request_type==='data_update'){
-      const parsed=selectedRequest.ocr_extracted_json?.parsed||{};
-      const updateData={
-        trophies:parsed.trophies!=null?Number(parsed.trophies):undefined,
-        best_trophies:parsed.highest_trophies!=null?Number(parsed.highest_trophies):undefined,
-        wins:parsed.wins!=null?Number(parsed.wins):undefined,
-        current_rank:parsed.current_rank!=null?Number(parsed.current_rank):undefined,
-        player_tag:parsed.player_tag||selectedRequest.player_tag||undefined,
-        last_verified_at:new Date().toISOString()
-      };
-      Object.keys(updateData).forEach(k=>{if(updateData[k]===undefined)delete updateData[k];});
-      const {error:e2}=await sb.from('players').update(updateData).eq('user_id',selectedRequest.user_id);
-      if(e2){alert('تم قبول الطلب لكن تعذر تحديث بيانات اللاعب: '+e2.message);return;}
-    }else{
+  if(isUpdate && manual){
+    const update={status:'approved',admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id,player_tag:manual.playerTag,wins:manual.wins,current_rank:manual.rank,ocr_extracted_json:{source:'manual_review',manual:{username:manual.username,player_tag:manual.playerTag,trophies:manual.trophies,highest_trophies:manual.bestTrophies,wins:manual.wins,current_rank:manual.rank,clan:manual.clan},reviewed_at:new Date().toISOString()}};
+    const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
+    if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
+    const playerUpdate={username:manual.username,player_tag:manual.playerTag,trophies:manual.trophies,best_trophies:manual.bestTrophies,wins:manual.wins,current_rank:manual.rank,last_verified_at:new Date().toISOString()};
+    if('clan' in manual)playerUpdate.clan=manual.clan;
+    const {error:e2}=await sb.from('players').update(playerUpdate).eq('user_id',selectedRequest.user_id);
+    if(e2){alert('تم اعتماد الطلب لكن تعذر تحديث بيانات اللاعب: '+e2.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
+  }else{
+    const update={status,admin_notes:notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id};
+    if(status==='rejected')update.rejection_reason=notes;
+    const {error:e1}=await sb.from('verification_requests').update(update).eq('id',selectedRequest.id);
+    if(e1){alert('تعذر تحديث الطلب: '+e1.message);document.getElementById('approveBtn').disabled=false;document.getElementById('rejectBtn').disabled=false;return;}
+    if(status==='approved'){
       const {error:e2}=await sb.from('players').update({verified:true,verified_at:new Date().toISOString()}).eq('user_id',selectedRequest.user_id);
       if(e2){alert('تم قبول الطلب لكن تعذر تحديث حالة اللاعب: '+e2.message+'\nراجع RLS وسياسة تحديث players.');return;}
+    }else{
+      const {error:e3}=await sb.from('players').update({verified:false,verified_at:null}).eq('user_id',selectedRequest.user_id);
+      if(e3)console.warn('Could not reset player verification:',e3);
     }
-  }else if(selectedRequest.request_type!=='data_update'){
-    const {error:e3}=await sb.from('players').update({verified:false,verified_at:null}).eq('user_id',selectedRequest.user_id);
-    if(e3)console.warn('Could not reset player verification:',e3);
   }
   document.getElementById('modalOverlay').classList.remove('show');await loadRequests();
 }

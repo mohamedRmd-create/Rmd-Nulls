@@ -928,7 +928,7 @@
       </div>
       <div class="player-update-warning">⚠️ ستخضع الصور لفحص بشري وآلي. أي محاولة غش أو تزوير للمعلومات سيتم اكتشافها، وقد يُرفض الطلب ويُسجّل إنذار أولي على الحساب.</div>
       <div class="player-update-status" id="playerUpdateStatus"></div>
-      <div class="player-update-actions"><button type="button" class="btn-primary" id="submitPlayerUpdateBtn" style="margin-top:0"><span>🔄 إرسال وتحديث المعلومات</span></button><button type="button" class="btn-primary" id="cancelPlayerUpdateBtn" style="margin-top:0;background:#F2EEFF;color:var(--primary-deep);box-shadow:none">إلغاء</button></div>
+      <div class="player-update-actions"><button type="button" class="btn-primary" id="submitPlayerUpdateBtn" style="margin-top:0"><span>🔄 إرسال للمراجعة</span></button><button type="button" class="btn-primary" id="cancelPlayerUpdateBtn" style="margin-top:0;background:#F2EEFF;color:var(--primary-deep);box-shadow:none">إلغاء</button></div>
     </div>
   </div>
 </div>
@@ -2020,26 +2020,31 @@ try{
 }catch(e){ console.error(e); }
 
 /* ============================================================
-   PLAYER DATA UPDATE — two screenshots + server-side OCR
+   PLAYER DATA UPDATE — MANUAL REVIEW ONLY
    ============================================================ */
 const PLAYER_UPDATE_BUCKET = "verification-docs";
-const PLAYER_UPDATE_MAX_MB = 5;
+const PLAYER_UPDATE_MAX_MB = 8;
 const PLAYER_UPDATE_ALLOWED_TYPES = ["image/jpeg","image/png","image/webp"];
 let playerUpdateFiles = {1:null,2:null};
 let playerUpdateBusy = false;
 
 function setPlayerUpdateStatus(kind,text){
   const el=document.getElementById('playerUpdateStatus'); if(!el)return;
-  el.className='player-update-status show '+(kind||'info'); el.textContent=text||'';
+  el.className='player-update-status show '+(kind||'info');
+  el.textContent=text||'';
 }
-function clearPlayerUpdateStatus(){const el=document.getElementById('playerUpdateStatus');if(el){el.className='player-update-status';el.textContent='';}}
+function clearPlayerUpdateStatus(){
+  const el=document.getElementById('playerUpdateStatus');
+  if(el){el.className='player-update-status';el.textContent='';}
+}
 function resetPlayerUpdateForm(){
   playerUpdateFiles={1:null,2:null}; clearPlayerUpdateStatus();
   [1,2].forEach(n=>{
     const input=document.getElementById('pudFile'+n), preview=document.getElementById('pudPreview'+n), drop=document.getElementById('pudDrop'+n);
     if(input)input.value=''; if(preview)preview.classList.remove('show'); if(drop)drop.style.display='flex';
   });
-  const btn=document.getElementById('submitPlayerUpdateBtn'); if(btn){btn.disabled=false;btn.innerHTML='<span>🔄 إرسال وتحديث المعلومات</span>';}
+  const btn=document.getElementById('submitPlayerUpdateBtn');
+  if(btn){btn.disabled=false;btn.innerHTML='<span>📤 إرسال للمراجعة</span>';}
   playerUpdateBusy=false;
 }
 function openPlayerUpdateModal(){
@@ -2053,7 +2058,7 @@ function closePlayerUpdateModal(){
 function handlePlayerUpdateFile(n,file){
   if(!file)return;
   if(!PLAYER_UPDATE_ALLOWED_TYPES.includes(file.type)){setPlayerUpdateStatus('err','صيغة الصورة غير مدعومة. استخدم JPG أو PNG أو WEBP.');return;}
-  if(file.size>PLAYER_UPDATE_MAX_MB*1024*1024){setPlayerUpdateStatus('err','حجم الصورة كبير جدًا. الحد الأقصى 5MB لكل صورة.');return;}
+  if(file.size>PLAYER_UPDATE_MAX_MB*1024*1024){setPlayerUpdateStatus('err','حجم الصورة كبير جدًا. الحد الأقصى 8MB لكل صورة.');return;}
   playerUpdateFiles[n]=file;
   const reader=new FileReader(); reader.onload=e=>{
     const img=document.getElementById('pudImg'+n), name=document.getElementById('pudName'+n), preview=document.getElementById('pudPreview'+n), drop=document.getElementById('pudDrop'+n);
@@ -2069,142 +2074,13 @@ function bindPlayerUpdateUploader(n){
   ['dragleave','drop'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();box.classList.remove('drag');}));
   box.addEventListener('drop',e=>handlePlayerUpdateFile(n,e.dataTransfer.files?.[0]));
 }
-function browserNormalizeText(s){
-  return String(s||'')
-    .replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
-    .replace(/[٬,]/g,'')
-    .replace(/[|]/g,' ')
-    .replace(/\s+/g,' ')
-    .trim();
-}
-function browserNumbersFrom(text){
-  return [...browserNormalizeText(text).matchAll(/\b\d{1,7}\b/g)]
-    .map(m=>Number(m[0])).filter(Number.isFinite);
-}
-function browserNormalizeTag(raw){
-  let s=String(raw||'').toUpperCase().replace(/[^A-Z0-9#]/g,'');
-  if(!s)return null;
-  if(!s.startsWith('#'))s='#'+s;
-  // Common OCR confusions in Null's/Supercell tags. Do not invent characters outside the official alphabet.
-  s=s.replace(/[IO]/g,'J');
-  const chars='0289PYLQGRJCUV';
-  const body=s.slice(1);
-  if(body.length<3||body.length>15)return null;
-  for(const ch of body)if(!chars.includes(ch))return null;
-  return '#'+body;
-}
-function browserExtractTag(text){
-  const raw=String(text||'').toUpperCase();
-  const candidates=raw.match(/#[A-Z0-9\s]{3,20}/g)||[];
-  for(const c of candidates){const t=browserNormalizeTag(c);if(t)return t;}
-  // Avoid treating arbitrary words as tags unless they consist only of the official tag alphabet.
-  for(const token of raw.split(/\s+/).map(x=>x.replace(/[^A-Z0-9]/g,'')).filter(Boolean)){
-    if(token.length<6)continue;
-    const t=browserNormalizeTag('#'+token);if(t)return t;
+async function manualReviewProgress(){
+  const steps=[0,12,24,38,52,67,81,94,100];
+  for(const pct of steps){
+    setPlayerUpdateStatus('info',`🔎 جارٍ فحص الصورتين وتجهيز الطلب للمراجعة... ${pct}%`);
+    await new Promise(r=>setTimeout(r,pct===100?500:350));
   }
-  return null;
 }
-
-// OCR often returns the correct trophy number but then picks unrelated numbers
-// (dates, IDs, levels, etc.) as wins/rank. Never use a blind "first number"
-// fallback for those fields. We only accept a number when it is close to a
-// recognizable label, otherwise the value stays null and the admin can review it.
-function browserLabelNumber(text,labelPatterns,maxGap=50){
-  const normalized=browserNormalizeText(text);
-  for(const label of labelPatterns){
-    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','i');
-    const m=normalized.match(re);
-    if(m){const n=Number(m[1]);if(Number.isFinite(n))return n;}
-  }
-  return null;
-}
-function browserNumbersNearLabel(text,labelPatterns,maxGap=70){
-  const normalized=browserNormalizeText(text);
-  const out=[];
-  for(const label of labelPatterns){
-    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','ig');
-    let m; while((m=re.exec(normalized))){const n=Number(m[1]);if(Number.isFinite(n))out.push(n);}
-  }
-  return [...new Set(out)];
-}
-function browserParseScreenshots(text1,text2){
-  const t1=browserNormalizeText(text1), t2=browserNormalizeText(text2), all=t1+' '+t2;
-  const tag=browserExtractTag(all) || browserExtractTag(text1);
-
-  // Null's Brawl profile labels can vary with localization/OCR. Keep the
-  // patterns deliberately conservative so unrelated numbers are not stored.
-  const trophyLabels=[
-    'troph(?:y|ies)','cups?','troph','current\\s+troph(?:y|ies)','current\\s+cups?'
-  ];
-  const highestLabels=[
-    'highest[^0-9]{0,25}troph(?:y|ies)','highest[^0-9]{0,25}cups?',
-    'best[^0-9]{0,25}troph(?:y|ies)','best[^0-9]{0,25}cups?'
-  ];
-  const winLabels=[
-    '(?:3v3|3\\s*v\\s*3)[^a-z0-9]{0,20}wins?',
-    'wins?','victories','win[s]?'
-  ];
-  const rankLabels=['current\\s+rank','rank(?:ing)?','league','tier'];
-
-  // Current trophies are the one value for which the old positional fallback
-  // was useful. Preserve that behavior, but keep every other field label-only.
-  const trophyByLabel=browserLabelNumber(t1,trophyLabels,60);
-  const t1nums=browserNumbersFrom(t1);
-  const trophies=trophyByLabel!=null?trophyByLabel:(t1nums.length===1?t1nums[0]:null);
-  const highest=browserLabelNumber(t1,highestLabels,70);
-
-  // Search both screenshots because users may upload either profile/battle
-  // history order. This prevents a number from the wrong screenshot becoming wins.
-  const wins=browserLabelNumber(t2,winLabels,70) ?? browserLabelNumber(t1,winLabels,70);
-  const rank=browserLabelNumber(t2,rankLabels,70) ?? browserLabelNumber(t1,rankLabels,70);
-
-  return {
-    player_tag:tag,
-    trophies,
-    highest_trophies:highest,
-    wins,
-    current_rank:rank,
-    _diagnostics:{
-      numbers_image1:browserNumbersFrom(t1),
-      numbers_image2:browserNumbersFrom(t2),
-      labeled_wins:browserNumbersNearLabel(t1,winLabels).concat(browserNumbersNearLabel(t2,winLabels)),
-      labeled_rank:browserNumbersNearLabel(t1,rankLabels).concat(browserNumbersNearLabel(t2,rankLabels)),
-      labeled_highest:browserNumbersNearLabel(t1,highestLabels),
-      note:'Fields other than trophies are not filled from arbitrary positional numbers.'
-    }
-  };
-}
-
-async function browserOcrFile(file,n){
-  if(!window.Tesseract)throw new Error('تعذر تحميل محرك OCR في المتصفح. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
-  setPlayerUpdateStatus('info',`🔎 جارٍ قراءة الصورة ${n} من 2...`);
-
-  // Run two lightweight OCR passes. PSM 6 is better for the regular profile
-  // layout, while PSM 11 helps when text is separated into small UI blocks.
-  const configs=[
-    {psm:'6',label:'التمرير الأساسي'},
-    {psm:'11',label:'التمرير الدقيق'}
-  ];
-  const texts=[];
-  for(const cfg of configs){
-    setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${cfg.label}...`);
-    const result=await Tesseract.recognize(file,'eng',{
-      config:{tessedit_pageseg_mode:cfg.psm},
-      logger:m=>{
-        if(m?.status && typeof m.progress==='number'){
-          const pct=Math.round(m.progress*100);
-          if(pct%10===0)setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${pct}%`);
-        }
-      }
-    });
-    const text=result?.data?.text||'';
-    if(text.trim())texts.push(text);
-  }
-  const text=texts.join('\n');
-  if(!text.trim())throw new Error(`لم يتمكن OCR من قراءة الصورة ${n}. استخدم صورة أوضح.`);
-  return text;
-}
-
 async function submitPlayerUpdate(){
   if(playerUpdateBusy)return;
   if(!verifiedUserId||!sb){setPlayerUpdateStatus('err','تعذر التحقق من جلسة الدخول.');return;}
@@ -2214,15 +2090,9 @@ async function submitPlayerUpdate(){
   if(btn){btn.disabled=true;btn.innerHTML='<span>⏳ جارٍ فحص الصور...</span>';}
   clearPlayerUpdateStatus();
   try{
-    // OCR is performed locally in the browser. The server function only validates
-    // the parsed result and applies the database-side decision/update.
-    const text1=await browserOcrFile(playerUpdateFiles[1],1);
-    const text2=await browserOcrFile(playerUpdateFiles[2],2);
-    const parsed=browserParseScreenshots(text1,text2);
-    if(!parsed.player_tag || parsed.trophies==null){
-      throw new Error('تعذر استخراج Player Tag أو الكؤوس الحالية من الصور. ارفع صورة أوضح ثم حاول مرة أخرى.');
-    }
-    setPlayerUpdateStatus('info','✅ اكتمل OCR. جارٍ رفع الصور وحفظ نتيجة الفحص...');
+    // لا يوجد OCR تلقائي هنا. الفحص هو تجهيز/رفع الصور فقط، والبيانات يملؤها الأدمن يدويًا.
+    await manualReviewProgress();
+    setPlayerUpdateStatus('info','📤 جارٍ رفع الصورتين وحفظ طلب المراجعة...');
     const stamp=Date.now(),paths={};
     for(const n of [1,2]){
       const file=playerUpdateFiles[n],ext=(file.name.split('.').pop()||'jpg').toLowerCase();
@@ -2231,22 +2101,32 @@ async function submitPlayerUpdate(){
       if(up.error)throw up.error;
       paths[n]=path;
     }
-    const ocrPayload={parsed,raw:{image1:text1,image2:text2,combined:`${text1}\n${text2}`},generated_at:new Date().toISOString(),source:'browser'};
+    const {data:player}=await sb.from('players').select('username,player_tag,clan,trophies,best_trophies,wins,current_rank').eq('user_id',verifiedUserId).maybeSingle();
+    const snapshot=player||{};
     const ins=await sb.from('verification_requests').insert({
-      user_id:verifiedUserId,status:'pending',request_type:'data_update',
-      proof_image_path:paths[1],image_path_2:paths[2],
-      player_tag:parsed.player_tag,current_rank:Number(parsed.current_rank),ocr_extracted_json:ocrPayload
+      user_id:verifiedUserId,
+      status:'pending',
+      request_type:'data_update',
+      proof_image_path:paths[1],
+      image_path_2:paths[2],
+      player_tag:snapshot.player_tag||null,
+      current_rank:null,
+      wins:null,
+      account_created_date:null,
+      social_username:null,
+      ocr_extracted_json:{source:'manual_review',message:'لا يوجد OCR تلقائي. البيانات يملؤها الأدمن يدويًا بعد مراجعة الصورتين.',player_snapshot:snapshot,generated_at:new Date().toISOString()}
     }).select('id').single();
     if(ins.error)throw ins.error;
-    // تم نقل الاعتماد الآلي إلى المراجعة اليدوية. لا نستدعي Edge Function هنا،
-    // لأن OCR يعمل محليًا في المتصفح ولمنع بقاء الطلب عالقًا إذا تعطلت الدالة.
-    setPlayerUpdateStatus('ok','✅ تم استلام الصور ونتيجة OCR بنجاح. سيظهر الطلب للمراجعة اليدوية في لوحة الإدارة.');
+    setPlayerUpdateStatus('ok','✅ تم إرسال الصور للمراجعة بنجاح. قد يستغرق تحديث معلومات الحساب من 10 إلى 20 دقيقة.');
+    if(btn)btn.innerHTML='<span>✓ تم إرسال الطلب</span>';
+    setTimeout(()=>{closePlayerUpdateModal();},3500);
   }catch(e){
     console.error('submitPlayerUpdate:',e);
-    setPlayerUpdateStatus('err','حدث خطأ أثناء فحص الصور أو إرسال التحديث: '+(e.message||'حاول مرة أخرى.'));
+    const msg=e?.message||String(e)||'حاول مرة أخرى.';
+    setPlayerUpdateStatus('err','حدث خطأ أثناء إرسال التحديث: '+msg);
   }finally{
     playerUpdateBusy=false;
-    if(btn){btn.disabled=false;btn.innerHTML='<span>🔄 إرسال وتحديث المعلومات</span>';}
+    if(btn && !btn.innerHTML.includes('تم إرسال')){btn.disabled=false;btn.innerHTML='<span>📤 إرسال للمراجعة</span>';}
   }
 }
 try{
@@ -2259,252 +2139,6 @@ try{
   bindPlayerUpdateUploader(1); bindPlayerUpdateUploader(2);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('playerUpdateOverlay')?.classList.contains('show'))closePlayerUpdateModal();});
 }catch(e){console.error('player update UI:',e);}
-
-/* ============================================================
-   نموذج طلب التحقق — التحقق من الحقول، رفع الصورة، والحفظ في Supabase
-   ============================================================ */
-const VERIFY_BUCKET = "verification-docs";
-const VERIFY_MAX_MB = 5;
-const VERIFY_ALLOWED_TYPES = ["image/jpeg","image/png","image/webp"];
-let vfSelectedFile = null;
-let vfSubmitting = false;
-let vfPrefilled = false;
-
-function vfClearErrors(){
-  ["vfWinsErr","vfDateErr","vfTagErr","vfSocialErr","vfFileErr","vfGeneralErr"].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.textContent = "";
-  });
-  document.querySelectorAll(".vf-field").forEach(f => f.classList.remove("has-error"));
-}
-
-function vfSetError(fieldId, errId, text){
-  const f = document.getElementById(fieldId);
-  const e = document.getElementById(errId);
-  if(f) f.classList.add("has-error");
-  if(e) e.textContent = text;
-}
-
-function normalizePlayerTag(v){
-  v = (v || "").trim().toUpperCase();
-  if(v && !v.startsWith("#")) v = "#" + v;
-  return v;
-}
-function isValidPlayerTag(v){
-  return /^#[A-Z0-9]{3,12}$/.test(v);
-}
-function normalizeSocialHandle(v){
-  v = (v || "").trim();
-  if(v && !v.startsWith("@")) v = "@" + v;
-  return v;
-}
-
-function resetVerifyForm(clearInputs){
-  vfClearErrors();
-  vfSelectedFile = null;
-  const preview = document.getElementById("vfPreview");
-  const box = document.getElementById("vfUploadBox");
-  if(preview) preview.classList.remove("show");
-  if(box) box.style.display = "block";
-  if(clearInputs){
-    ["vfWins","vfDate","vfTag","vfSocial","vfFileInput"].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.value = "";
-    });
-  }
-  setVfSubmitting(false);
-}
-
-function setVfSubmitting(state){
-  vfSubmitting = state;
-  const btn = document.getElementById("vfSubmitBtn");
-  if(!btn) return;
-  btn.classList.toggle("loading", state);
-  btn.disabled = state;
-}
-
-// رفع الصورة: نقر على الصندوق أو سحب وإفلات
-try{
-  const box = document.getElementById("vfUploadBox");
-  const fileInput = document.getElementById("vfFileInput");
-  box.addEventListener("click", () => fileInput.click());
-  box.addEventListener("keydown", (e) => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); fileInput.click(); } });
-  fileInput.addEventListener("change", (e) => { if(e.target.files && e.target.files[0]) handleVfFile(e.target.files[0]); });
-
-  ["dragenter","dragover"].forEach(ev => box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.add("drag"); }));
-  ["dragleave","drop"].forEach(ev => box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.remove("drag"); }));
-  box.addEventListener("drop", (e) => {
-    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleVfFile(e.dataTransfer.files[0]);
-  });
-
-  document.getElementById("vfChangeBtn").addEventListener("click", (e) => {
-    e.stopPropagation();
-    vfSelectedFile = null;
-    fileInput.value = "";
-    document.getElementById("vfPreview").classList.remove("show");
-    box.style.display = "block";
-  });
-}catch(e){ console.error(e); }
-
-function handleVfFile(file){
-  document.getElementById("vfFileErr").textContent = "";
-  if(!VERIFY_ALLOWED_TYPES.includes(file.type)){
-    document.getElementById("vfFileErr").textContent = "صيغة الملف غير مدعومة. استخدم JPG أو PNG أو WEBP.";
-    return;
-  }
-  if(file.size > VERIFY_MAX_MB * 1024 * 1024){
-    document.getElementById("vfFileErr").textContent = "حجم الصورة كبير جدًا (الحد الأقصى " + VERIFY_MAX_MB + "MB).";
-    return;
-  }
-  vfSelectedFile = file;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById("vfPreviewImg").src = e.target.result;
-    document.getElementById("vfPreviewName").textContent = file.name;
-    document.getElementById("vfPreview").classList.add("show");
-    document.getElementById("vfUploadBox").style.display = "none";
-  };
-  reader.readAsDataURL(file);
-}
-
-// عند فتح الصفحة: تحقق هل يوجد طلب سابق (pending / approved / rejected) قبل عرض النموذج
-async function loadVerificationStatus(){
-  const wrap = document.getElementById("verifyStatusWrap");
-  const form = document.getElementById("verifyForm");
-  wrap.style.display = "none";
-  form.style.display = "block";
-  if(!sb || !verifiedUserId) return;
-
-  // تعبئة عدد الانتصارات تلقائيًا من بيانات اللاعب الحالية إن وُجدت، مرة واحدة فقط
-  if(!vfPrefilled){
-    const mine = playersCache.find(p => p.user_id === verifiedUserId);
-    if(mine && (mine.wins || mine.wins === 0) && !document.getElementById("vfWins").value){
-      document.getElementById("vfWins").value = mine.wins;
-    }
-    vfPrefilled = true;
-  }
-
-  try{
-    const { data, error } = await sb
-      .from("verification_requests")
-      .select("status, created_at, rejection_reason")
-      .eq("user_id", verifiedUserId)
-      .order("created_at", { ascending:false })
-      .limit(1)
-      .maybeSingle();
-
-    if(error) throw error;
-    if(!data) return; // لا يوجد طلب سابق — اعرض النموذج كما هو
-
-    if(data.status === "pending"){
-      wrap.innerHTML = `<div class="verify-status-card pending">
-        <div class="ic">⏳</div><h3>طلبك قيد المراجعة</h3>
-        <p>تم استلام طلب التحقق الخاص بك وسيتم مراجعته خلال 24 ساعة القادمة. لا حاجة لإرسال طلب جديد.</p>
-      </div>`;
-      wrap.style.display = "block";
-      form.style.display = "none";
-    }else if(data.status === "approved"){
-      wrap.innerHTML = `<div class="verify-status-card success">
-        <div class="ic">✅</div><h3>حسابك موثّق</h3>
-        <p>تم توثيق حسابك بنجاح، وأصبح ظاهرًا للعامة ومؤهلاً للمشاركة في المسابقات والحصول على الألقاب.</p>
-      </div>`;
-      wrap.style.display = "block";
-      form.style.display = "none";
-    }else if(data.status === "rejected"){
-      wrap.innerHTML = `<div class="verify-status-card rejected">
-        <div class="ic">⚠️</div><h3>تم رفض طلبك السابق</h3>
-        <p>${data.rejection_reason ? escapeHtml(data.rejection_reason) : "لم تُستوفَ شروط التحقق."} يمكنك تصحيح البيانات وإرسال طلب جديد بالأسفل.</p>
-      </div>`;
-      wrap.style.display = "block";
-      form.style.display = "block";
-    }
-  }catch(e){
-    console.error(e);
-  }
-}
-
-// إرسال طلب التحقق: تحقق من الحقول، ارفع الصورة إلى Storage، ثم أدرج الطلب في قاعدة البيانات
-async function submitVerificationRequest(){
-  if(vfSubmitting) return;
-  vfClearErrors();
-
-  const wins = document.getElementById("vfWins").value.trim();
-  const dateVal = document.getElementById("vfDate").value;
-  const tag = normalizePlayerTag(document.getElementById("vfTag").value);
-  const social = normalizeSocialHandle(document.getElementById("vfSocial").value);
-
-  let hasError = false;
-
-  if(wins === "" || !/^\d+$/.test(wins)){
-    vfSetError("vfWinsField","vfWinsErr","الرجاء إدخال عدد صحيح للانتصارات.");
-    hasError = true;
-  }
-  if(!dateVal){
-    vfSetError("vfDateField","vfDateErr","الرجاء اختيار تاريخ إنشاء الحساب.");
-    hasError = true;
-  }else{
-    const d = new Date(dateVal);
-    if(isNaN(d.getTime()) || d > new Date()){
-      vfSetError("vfDateField","vfDateErr","التاريخ غير صالح.");
-      hasError = true;
-    }
-  }
-  if(!tag || !isValidPlayerTag(tag)){
-    vfSetError("vfTagField","vfTagErr","صيغة الـ Player Tag غير صحيحة، مثال: #2YGQ8RGG");
-    hasError = true;
-  }
-  if(!social || social === "@"){
-    vfSetError("vfSocialField","vfSocialErr","الرجاء إدخال اليوزر الاجتماعي.");
-    hasError = true;
-  }
-  if(!vfSelectedFile){
-    document.getElementById("vfFileErr").textContent = "الرجاء إرفاق صورة حسابك للتوثيق.";
-    hasError = true;
-  }
-  if(!verifiedUserId || !sb){
-    document.getElementById("vfGeneralErr").textContent = "تعذر التحقق من جلستك، الرجاء إعادة تسجيل الدخول.";
-    hasError = true;
-  }
-
-  if(hasError) return;
-
-  setVfSubmitting(true);
-  try{
-    const ext = (vfSelectedFile.name.split(".").pop() || "jpg").toLowerCase();
-    const path = `${verifiedUserId}/${Date.now()}.${ext}`;
-
-    const { error: upErr } = await sb.storage.from(VERIFY_BUCKET).upload(path, vfSelectedFile, {
-      cacheControl: "3600",
-      upsert: false,
-      contentType: vfSelectedFile.type
-    });
-    if(upErr) throw upErr;
-
-    const { error: insErr } = await sb.from("verification_requests").insert({
-      user_id: verifiedUserId,
-      wins: parseInt(wins, 10),
-      account_created_date: dateVal,
-      player_tag: tag,
-      social_username: social,
-      proof_image_path: path,
-      status: "pending"
-    });
-    if(insErr) throw insErr;
-
-    const wrap = document.getElementById("verifyStatusWrap");
-    wrap.innerHTML = `<div class="verify-status-card success">
-      <div class="ic">✅</div><h3>تم استلام طلب التحقق بنجاح!</h3>
-      <p>سيتم التحقق من حسابك خلال الـ 24 ساعة القادمة.</p>
-    </div>`;
-    wrap.style.display = "block";
-    document.getElementById("verifyForm").style.display = "none";
-  }catch(e){
-    console.error(e);
-    document.getElementById("vfGeneralErr").textContent = "حدث خطأ أثناء إرسال الطلب: " + (e.message || "حاول مرة أخرى.");
-  }finally{
-    setVfSubmitting(false);
-  }
-}
 </script>
 
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
