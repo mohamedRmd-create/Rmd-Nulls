@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.57.0",
+    "tesseract.js": "npm:tesseract.js@5.1.1"
+  }
+}
