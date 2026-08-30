@@ -2082,50 +2082,34 @@ function browserNumbersFrom(text){
     .map(m=>Number(m[0])).filter(Number.isFinite);
 }
 function browserNormalizeTag(raw){
-  let s=String(raw||'').toUpperCase().replace(/[^A-Z0-9#\s]/g,'').replace(/\s+/g,'');
+  let s=String(raw||'').toUpperCase().replace(/[^A-Z0-9#]/g,'');
   if(!s)return null;
   if(!s.startsWith('#'))s='#'+s;
-  // Common OCR confusions for Null's/Supercell player tags.
-  // Keep the replacements conservative and only accept the official alphabet afterwards.
-  s=s.replace(/B/g,'8').replace(/O/g,'0').replace(/I/g,'J').replace(/S/g,'2').replace(/Z/g,'2');
+  // Common OCR confusions in Null's/Supercell tags. Do not invent characters outside the official alphabet.
+  s=s.replace(/[IO]/g,'J');
   const chars='0289PYLQGRJCUV';
   const body=s.slice(1);
   if(body.length<3||body.length>15)return null;
   for(const ch of body)if(!chars.includes(ch))return null;
   return '#'+body;
 }
-function browserTagVariants(raw){
-  const base=String(raw||'').toUpperCase().replace(/[^A-Z0-9#\s]/g,'').replace(/\s+/g,'');
-  if(!base)return [];
-  const variants=new Set([base,base.replace(/B/g,'8'),base.replace(/O/g,'0'),base.replace(/I/g,'J'),base.replace(/B/g,'8').replace(/O/g,'0').replace(/I/g,'J')]);
-  return [...variants];
-}
 function browserExtractTag(text){
   const raw=String(text||'').toUpperCase();
-  const candidates=[];
-  const hashCandidates=raw.match(/#[A-Z0-9\s]{3,22}/g)||[];
-  candidates.push(...hashCandidates);
-  // OCR may split the tag into several tokens or omit '#'. Join short adjacent tokens.
-  const tokens=raw.split(/\s+/).map(x=>x.replace(/[^A-Z0-9]/g,'')).filter(Boolean);
-  for(let i=0;i<tokens.length;i++){
-    candidates.push(tokens[i]);
-    let joined='';
-    for(let j=i;j<Math.min(tokens.length,i+4);j++){
-      joined+=tokens[j];
-      if(joined.length>=6 && joined.length<=15)candidates.push(joined);
-      if(joined.length>15)break;
-    }
-  }
-  for(const candidate of candidates){
-    for(const variant of browserTagVariants(candidate)){
-      const t=browserNormalizeTag(variant);
-      if(t)return t;
-    }
+  const candidates=raw.match(/#[A-Z0-9\s]{3,20}/g)||[];
+  for(const c of candidates){const t=browserNormalizeTag(c);if(t)return t;}
+  // Avoid treating arbitrary words as tags unless they consist only of the official tag alphabet.
+  for(const token of raw.split(/\s+/).map(x=>x.replace(/[^A-Z0-9]/g,'')).filter(Boolean)){
+    if(token.length<6)continue;
+    const t=browserNormalizeTag('#'+token);if(t)return t;
   }
   return null;
 }
 
-function browserLabelNumber(text,labelPatterns,maxGap=80){
+// OCR often returns the correct trophy number but then picks unrelated numbers
+// (dates, IDs, levels, etc.) as wins/rank. Never use a blind "first number"
+// fallback for those fields. We only accept a number when it is close to a
+// recognizable label, otherwise the value stays null and the admin can review it.
+function browserLabelNumber(text,labelPatterns,maxGap=50){
   const normalized=browserNormalizeText(text);
   for(const label of labelPatterns){
     const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','i');
@@ -2134,7 +2118,7 @@ function browserLabelNumber(text,labelPatterns,maxGap=80){
   }
   return null;
 }
-function browserNumbersNearLabel(text,labelPatterns,maxGap=100){
+function browserNumbersNearLabel(text,labelPatterns,maxGap=70){
   const normalized=browserNormalizeText(text);
   const out=[];
   for(const label of labelPatterns){
@@ -2143,63 +2127,50 @@ function browserNumbersNearLabel(text,labelPatterns,maxGap=100){
   }
   return [...new Set(out)];
 }
-function browserLikelyTrophyNumbers(text){
-  const nums=browserNumbersFrom(text).filter(n=>n>=0 && n<=250000);
-  // Ignore obvious years/date fragments and tiny UI counters. Trophy totals are normally much larger.
-  const filtered=nums.filter(n=>n>=100 || n===0);
-  return [...new Set(filtered)].sort((a,b)=>b-a);
-}
 function browserParseScreenshots(text1,text2){
   const t1=browserNormalizeText(text1), t2=browserNormalizeText(text2), all=t1+' '+t2;
-  const tag=browserExtractTag(all) || browserExtractTag(text1) || browserExtractTag(text2);
+  const tag=browserExtractTag(all) || browserExtractTag(text1);
 
+  // Null's Brawl profile labels can vary with localization/OCR. Keep the
+  // patterns deliberately conservative so unrelated numbers are not stored.
   const trophyLabels=[
-    'troph(?:y|ies)','cups?','troph','current\\s+troph(?:y|ies)','current\\s+cups?',
-    'total\\s+troph(?:y|ies)','total\\s+cups?'
+    'troph(?:y|ies)','cups?','troph','current\\s+troph(?:y|ies)','current\\s+cups?'
   ];
   const highestLabels=[
-    'highest[^0-9]{0,30}troph(?:y|ies)','highest[^0-9]{0,30}cups?',
-    'best[^0-9]{0,30}troph(?:y|ies)','best[^0-9]{0,30}cups?'
+    'highest[^0-9]{0,25}troph(?:y|ies)','highest[^0-9]{0,25}cups?',
+    'best[^0-9]{0,25}troph(?:y|ies)','best[^0-9]{0,25}cups?'
   ];
-  const winLabels=['(?:3v3|3\\s*v\\s*3)[^a-z0-9]{0,25}wins?','wins?','victories','win[s]?'];
+  const winLabels=[
+    '(?:3v3|3\\s*v\\s*3)[^a-z0-9]{0,20}wins?',
+    'wins?','victories','win[s]?'
+  ];
   const rankLabels=['current\\s+rank','rank(?:ing)?','league','tier'];
 
-  const trophyByLabel=browserLabelNumber(t1,trophyLabels,80) ?? browserLabelNumber(t2,trophyLabels,80);
-  const highest=browserLabelNumber(t1,highestLabels,90) ?? browserLabelNumber(t2,highestLabels,90);
+  // Current trophies are the one value for which the old positional fallback
+  // was useful. Preserve that behavior, but keep every other field label-only.
+  const trophyByLabel=browserLabelNumber(t1,trophyLabels,60);
+  const t1nums=browserNumbersFrom(t1);
+  const trophies=trophyByLabel!=null?trophyByLabel:(t1nums.length===1?t1nums[0]:null);
+  const highest=browserLabelNumber(t1,highestLabels,70);
 
-  // If labels are not recognized, use a safe trophy-only fallback instead of failing completely.
-  // We never use this fallback for wins/rank because those fields contain many unrelated numbers.
-  const trophyNums=[...new Set([...browserLikelyTrophyNumbers(t1),...browserLikelyTrophyNumbers(t2)])].sort((a,b)=>b-a);
-  let trophies=trophyByLabel;
-  let best=highest;
-  if(trophies==null){
-    // Prefer the smaller of two plausible trophy totals (current <= highest).
-    if(trophyNums.length>=2)trophies=trophyNums.slice(0,2).sort((a,b)=>a-b)[0];
-    else if(trophyNums.length===1)trophies=trophyNums[0];
-  }
-  if(best==null && trophyNums.length>=2){
-    const pair=trophyNums.slice(0,2).sort((a,b)=>a-b);
-    if(trophies!=null)best=pair.find(n=>n>=trophies) ?? pair[1];
-    else best=pair[1];
-  }
+  // Search both screenshots because users may upload either profile/battle
+  // history order. This prevents a number from the wrong screenshot becoming wins.
+  const wins=browserLabelNumber(t2,winLabels,70) ?? browserLabelNumber(t1,winLabels,70);
+  const rank=browserLabelNumber(t2,rankLabels,70) ?? browserLabelNumber(t1,rankLabels,70);
 
-  const wins=browserLabelNumber(t2,winLabels,100) ?? browserLabelNumber(t1,winLabels,100);
-  const rank=browserLabelNumber(t2,rankLabels,100) ?? browserLabelNumber(t1,rankLabels,100);
   return {
     player_tag:tag,
     trophies,
-    highest_trophies:best,
+    highest_trophies:highest,
     wins,
     current_rank:rank,
     _diagnostics:{
       numbers_image1:browserNumbersFrom(t1),
       numbers_image2:browserNumbersFrom(t2),
-      trophy_candidates:trophyNums,
       labeled_wins:browserNumbersNearLabel(t1,winLabels).concat(browserNumbersNearLabel(t2,winLabels)),
       labeled_rank:browserNumbersNearLabel(t1,rankLabels).concat(browserNumbersNearLabel(t2,rankLabels)),
-      labeled_highest:browserNumbersNearLabel(t1,highestLabels).concat(browserNumbersNearLabel(t2,highestLabels)),
-      detected_tag:tag,
-      note:'تم استخدام بديل آمن للكؤوس فقط عند غياب اسم الحقل؛ الانتصارات والرانك لا تُملأ من أرقام عشوائية.'
+      labeled_highest:browserNumbersNearLabel(t1,highestLabels),
+      note:'Fields other than trophies are not filled from arbitrary positional numbers.'
     }
   };
 }
@@ -2267,28 +2238,9 @@ async function submitPlayerUpdate(){
       player_tag:parsed.player_tag,current_rank:Number(parsed.current_rank),ocr_extracted_json:ocrPayload
     }).select('id').single();
     if(ins.error)throw ins.error;
-    setPlayerUpdateStatus('info','تم رفع الصور. جارٍ التحقق من البيانات وحفظ النتيجة...');
-    let result=null;
-    try{
-      const fn=await sb.functions.invoke('process-player-update',{body:{request_id:ins.data.id,parsed,ocr_raw:{image1:text1,image2:text2,combined:`${text1}\n${text2}`}}});
-      if(fn.error)throw fn.error;
-      result=fn.data;
-    }catch(fnErr){
-      console.error('process-player-update:',fnErr);
-      const fnMessage = fnErr?.message || fnErr?.error?.message || (typeof fnErr === 'string' ? fnErr : 'خطأ غير معروف');
-      setPlayerUpdateStatus('warn',`تم استلام الصور ونتيجة OCR، لكن تعذر إكمال الاعتماد الآلي. سيظهر الطلب للمراجعة اليدوية. (${fnMessage})`);
-      return;
-    }
-    if(result?.decision==='approved'){
-      setPlayerUpdateStatus('ok','✅ تم تحديث معلوماتك بنجاح. أصبحت البيانات الجديدة معروضة في الموقع.');
-      await loadDashboard(); await loadCurrentPlayerAppearance();
-    }else if(result?.decision==='pending_review'){
-      setPlayerUpdateStatus('warn','⏳ تم تعليق التحديث للمراجعة اليدوية. ستبقى بياناتك القديمة ظاهرة حتى يراجع المشرف الطلب.');
-    }else if(result?.decision==='rejected'){
-      setPlayerUpdateStatus('err','❌ تم رفض تحديث المعلومات تلقائيًا بسبب تناقض في البيانات. يمكنك رفع صور أوضح والمحاولة مرة أخرى.');
-    }else{
-      setPlayerUpdateStatus('info','تم استلام طلب التحديث وسيتم فحصه قبل اعتماد البيانات.');
-    }
+    // تم نقل الاعتماد الآلي إلى المراجعة اليدوية. لا نستدعي Edge Function هنا،
+    // لأن OCR يعمل محليًا في المتصفح ولمنع بقاء الطلب عالقًا إذا تعطلت الدالة.
+    setPlayerUpdateStatus('ok','✅ تم استلام الصور ونتيجة OCR بنجاح. سيظهر الطلب للمراجعة اليدوية في لوحة الإدارة.');
   }catch(e){
     console.error('submitPlayerUpdate:',e);
     setPlayerUpdateStatus('err','حدث خطأ أثناء فحص الصور أو إرسال التحديث: '+(e.message||'حاول مرة أخرى.'));
