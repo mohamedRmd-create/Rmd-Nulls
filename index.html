@@ -453,7 +453,7 @@
   .appearance-card.selected{outline:3px solid rgba(124,77,255,.18);border-color:var(--primary);}
   .appearance-card.locked{opacity:.45;filter:grayscale(.55);cursor:not-allowed;}
   .appearance-preview{width:90px;height:90px;margin:0 auto 9px;display:flex;align-items:center;justify-content:center;position:relative;}
-  .appearance-preview img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;}
+  .appearance-preview img{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;display:block;}
   /* Avatar selection: show the avatar by itself. Frames are previewed only in the Frames tab. */
   .appearance-preview .frame-ring{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:2;}
   .appearance-name{font-weight:900;font-size:11px;color:var(--ink);}
@@ -1739,6 +1739,8 @@ try{
 /* ============================================================
    PROFILE APPEARANCE — avatars & frames
    ============================================================ */
+let appearanceMode='avatars';
+let currentPlayerAppearance={user_id:null,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
 const AVATAR_OPTIONS=[
   {key:'starter',name:'ذراع التحكم البنفسجي',src:'assets/avatars/controller.png',unlock:null},
   {key:'pirate_flag',name:'حامل علم القراصنة',src:'assets/avatars/pirate_flag.png',unlock:'arena_legend'},
@@ -1763,24 +1765,65 @@ const COMPOSITE_ASSETS={
   pirate_skull:{bronze:'assets/composites/skull-bronze.png',silver:'assets/composites/skull-silver.png',gold:'assets/composites/skull-gold.png',diamond:'assets/composites/skull-diamond.png',masters:'assets/composites/skull-masters.png'},
   ninja:{bronze:'assets/composites/ninja-bronze.png',silver:'assets/composites/ninja-silver.png',gold:'assets/composites/ninja-gold.png',diamond:'assets/composites/ninja-diamond.png',masters:'assets/composites/ninja-masters.png'}
 };
-const AVATAR_ONLY_ASSETS={starter:'assets/avatars/controller.png',pirate_flag:'assets/avatars/pirate_flag.png',royal_chicken:'assets/avatars/chicken.png',tea_knight:'assets/avatars/knight.png',pirate_skull:'assets/avatars/skull.png',ninja:'assets/avatars/ninja.png'};
+const AVATAR_ONLY_ASSETS={
+  starter:'assets/avatars/controller-empty.png',
+  pirate_flag:'assets/avatars/pirate_flag-empty.png',
+  royal_chicken:'assets/avatars/chicken-empty.png',
+  tea_knight:'assets/avatars/knight-empty.png',
+  pirate_skull:'assets/avatars/skull-empty.png',
+  ninja:'assets/avatars/ninja-empty.png'
+};
 function getAvatarSrc(key,fallback){return AVATAR_ONLY_ASSETS[key]||fallback||AVATAR_ONLY_ASSETS.starter;}
 function getFrameSrc(key){return null;}
 function getCompositeSrc(avatarKey,frameKey,fallback){
-  const a=COMPOSITE_ASSETS[avatarKey]||COMPOSITE_ASSETS.starter;
+  const safeAvatar=AVATAR_ONLY_ASSETS[avatarKey]?avatarKey:'starter';
+  const a=COMPOSITE_ASSETS[safeAvatar]||COMPOSITE_ASSETS.starter;
   if(frameKey && frameKey!=='classic' && a[frameKey]) return a[frameKey];
-  return AVATAR_ONLY_ASSETS[avatarKey]||fallback||AVATAR_ONLY_ASSETS.starter;
+  return AVATAR_ONLY_ASSETS[safeAvatar]||fallback||AVATAR_ONLY_ASSETS.starter;
 }
 function unlockedAppearance(item){return !item.unlock || (item.unlock!=='__locked__' && (badgeAwardsByUser[String(verifiedUserId||'')]||[]).some(a=>String(a.badge_id)===item.unlock));}
 async function loadCurrentPlayerAppearance(){
-  if(!sb||!verifiedUserId)return;
-  const r=await sb.from('players').select('user_id,avatar_key,frame_key,avatar_url,rank').eq('user_id',verifiedUserId).maybeSingle();
-  if(r.error){console.error('loadCurrentPlayerAppearance:',r.error);return;}
-  currentPlayerAppearance=r.data||{user_id:verifiedUserId,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
-  if(!Object.keys(badgeAwardsByUser||{}).length) await loadBadgeData();
+  // Never block the appearance page on Supabase. Render safe defaults first.
+  if(!verifiedUserId){
+    currentPlayerAppearance={user_id:null,avatar_key:'starter',frame_key:'classic',avatar_url:null,rank:'bronze'};
+    renderAppearanceGrid();
+    updateLoggedUserAppearance();
+    return;
+  }
+  currentPlayerAppearance={...currentPlayerAppearance,user_id:verifiedUserId};
+  renderAppearanceGrid();
+  updateLoggedUserAppearance();
+
+  try{
+    // select('*') avoids the previous 400 caused by a schema/column mismatch.
+    const r=await sb.from('players').select('*').eq('user_id',verifiedUserId).maybeSingle();
+    if(r.error){
+      console.warn('loadCurrentPlayerAppearance: using defaults:',r.error.message);
+    }else if(r.data){
+      currentPlayerAppearance={
+        ...currentPlayerAppearance,
+        user_id:r.data.user_id||verifiedUserId,
+        avatar_key:AVATAR_ONLY_ASSETS[r.data.avatar_key]?r.data.avatar_key:'starter',
+        frame_key:FRAME_OPTIONS.some(x=>x.key===r.data.frame_key)?r.data.frame_key:'classic',
+        avatar_url:r.data.avatar_url||null,
+        rank:r.data.rank||'bronze'
+      };
+    }
+  }catch(err){ console.warn('loadCurrentPlayerAppearance: keeping defaults',err); }
+
+  try{
+    if(!Object.keys(badgeAwardsByUser||{}).length) await loadBadgeData();
+  }catch(err){ console.warn('loadBadgeData failed:',err); }
+
+  // A frame that is no longer unlocked must never be displayed.
+  if(currentPlayerAppearance.frame_key!=='classic'){
+    const fr=FRAME_OPTIONS.find(x=>x.key===currentPlayerAppearance.frame_key);
+    if(fr && !unlockedAppearance(fr)) currentPlayerAppearance.frame_key='classic';
+  }
   renderAppearanceGrid();
   updateLoggedUserAppearance();
 }
+
 function renderAppearanceGrid(){
   const grid=document.getElementById('appearanceGrid'); if(!grid)return;
   const list=appearanceMode==='avatars'?AVATAR_OPTIONS:FRAME_OPTIONS;
