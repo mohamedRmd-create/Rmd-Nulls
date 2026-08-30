@@ -2070,18 +2070,25 @@ function bindPlayerUpdateUploader(n){
   box.addEventListener('drop',e=>handlePlayerUpdateFile(n,e.dataTransfer.files?.[0]));
 }
 function browserNormalizeText(s){
-  return String(s||'').replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/[,٬]/g,'').replace(/\s+/g,' ').trim();
+  return String(s||'')
+    .replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[٬,]/g,'')
+    .replace(/[|]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 function browserNumbersFrom(text){
-  return [...browserNormalizeText(text).matchAll(/\b\d{1,7}\b/g)].map(m=>Number(m[0])).filter(Number.isFinite);
+  return [...browserNormalizeText(text).matchAll(/\b\d{1,7}\b/g)]
+    .map(m=>Number(m[0])).filter(Number.isFinite);
 }
 function browserNormalizeTag(raw){
   let s=String(raw||'').toUpperCase().replace(/[^A-Z0-9#]/g,'');
   if(!s)return null;
   if(!s.startsWith('#'))s='#'+s;
-  s=s.replace(/I/g,'J');
-  const body=s.slice(1);
+  // Common OCR confusions in Null's/Supercell tags. Do not invent characters outside the official alphabet.
+  s=s.replace(/[IO]/g,'J');
   const chars='0289PYLQGRJCUV';
+  const body=s.slice(1);
   if(body.length<3||body.length>15)return null;
   for(const ch of body)if(!chars.includes(ch))return null;
   return '#'+body;
@@ -2090,48 +2097,114 @@ function browserExtractTag(text){
   const raw=String(text||'').toUpperCase();
   const candidates=raw.match(/#[A-Z0-9\s]{3,20}/g)||[];
   for(const c of candidates){const t=browserNormalizeTag(c);if(t)return t;}
+  // Avoid treating arbitrary words as tags unless they consist only of the official tag alphabet.
   for(const token of raw.split(/\s+/).map(x=>x.replace(/[^A-Z0-9]/g,'')).filter(Boolean)){
+    if(token.length<6)continue;
     const t=browserNormalizeTag('#'+token);if(t)return t;
   }
   return null;
 }
-function browserPickNumber(text,labels){
+
+// OCR often returns the correct trophy number but then picks unrelated numbers
+// (dates, IDs, levels, etc.) as wins/rank. Never use a blind "first number"
+// fallback for those fields. We only accept a number when it is close to a
+// recognizable label, otherwise the value stays null and the admin can review it.
+function browserLabelNumber(text,labelPatterns,maxGap=50){
   const normalized=browserNormalizeText(text);
-  for(const label of labels){
-    const m=normalized.match(new RegExp(label+'[^0-9]{0,25}(\\d{1,7})','i'));
-    if(m)return Number(m[1]);
+  for(const label of labelPatterns){
+    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','i');
+    const m=normalized.match(re);
+    if(m){const n=Number(m[1]);if(Number.isFinite(n))return n;}
   }
   return null;
 }
+function browserNumbersNearLabel(text,labelPatterns,maxGap=70){
+  const normalized=browserNormalizeText(text);
+  const out=[];
+  for(const label of labelPatterns){
+    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','ig');
+    let m; while((m=re.exec(normalized))){const n=Number(m[1]);if(Number.isFinite(n))out.push(n);}
+  }
+  return [...new Set(out)];
+}
 function browserParseScreenshots(text1,text2){
-  const nums1=browserNumbersFrom(text1), nums2=browserNumbersFrom(text2);
-  const trophies=browserPickNumber(text1,'troph(?:y|ies)|cups?');
-  const highest=browserPickNumber(text1,'highest[^0-9]{0,15}(?:troph(?:y|ies)|cups?)|best[^0-9]{0,15}(?:troph(?:y|ies)|cups?)');
-  const wins=browserPickNumber(text2,'wins?|victories');
-  const rank=browserPickNumber(text2,'rank|ranking|league');
+  const t1=browserNormalizeText(text1), t2=browserNormalizeText(text2), all=t1+' '+t2;
+  const tag=browserExtractTag(all) || browserExtractTag(text1);
+
+  // Null's Brawl profile labels can vary with localization/OCR. Keep the
+  // patterns deliberately conservative so unrelated numbers are not stored.
+  const trophyLabels=[
+    'troph(?:y|ies)','cups?','troph','current\\s+troph(?:y|ies)','current\\s+cups?'
+  ];
+  const highestLabels=[
+    'highest[^0-9]{0,25}troph(?:y|ies)','highest[^0-9]{0,25}cups?',
+    'best[^0-9]{0,25}troph(?:y|ies)','best[^0-9]{0,25}cups?'
+  ];
+  const winLabels=[
+    '(?:3v3|3\\s*v\\s*3)[^a-z0-9]{0,20}wins?',
+    'wins?','victories','win[s]?'
+  ];
+  const rankLabels=['current\\s+rank','rank(?:ing)?','league','tier'];
+
+  // Current trophies are the one value for which the old positional fallback
+  // was useful. Preserve that behavior, but keep every other field label-only.
+  const trophyByLabel=browserLabelNumber(t1,trophyLabels,60);
+  const t1nums=browserNumbersFrom(t1);
+  const trophies=trophyByLabel!=null?trophyByLabel:(t1nums.length===1?t1nums[0]:null);
+  const highest=browserLabelNumber(t1,highestLabels,70);
+
+  // Search both screenshots because users may upload either profile/battle
+  // history order. This prevents a number from the wrong screenshot becoming wins.
+  const wins=browserLabelNumber(t2,winLabels,70) ?? browserLabelNumber(t1,winLabels,70);
+  const rank=browserLabelNumber(t2,rankLabels,70) ?? browserLabelNumber(t1,rankLabels,70);
+
   return {
-    player_tag:browserExtractTag(text1),
-    trophies:trophies??nums1[0]??null,
-    highest_trophies:highest??(nums1.length>1?nums1[1]:null),
-    wins:wins??nums2[0]??null,
-    current_rank:rank??(nums2.length>1?nums2[1]:(nums2[0]??null))
+    player_tag:tag,
+    trophies,
+    highest_trophies:highest,
+    wins,
+    current_rank:rank,
+    _diagnostics:{
+      numbers_image1:browserNumbersFrom(t1),
+      numbers_image2:browserNumbersFrom(t2),
+      labeled_wins:browserNumbersNearLabel(t1,winLabels).concat(browserNumbersNearLabel(t2,winLabels)),
+      labeled_rank:browserNumbersNearLabel(t1,rankLabels).concat(browserNumbersNearLabel(t2,rankLabels)),
+      labeled_highest:browserNumbersNearLabel(t1,highestLabels),
+      note:'Fields other than trophies are not filled from arbitrary positional numbers.'
+    }
   };
 }
+
 async function browserOcrFile(file,n){
   if(!window.Tesseract)throw new Error('تعذر تحميل محرك OCR في المتصفح. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
   setPlayerUpdateStatus('info',`🔎 جارٍ قراءة الصورة ${n} من 2...`);
-  const result=await Tesseract.recognize(file,'eng',{
-    logger:m=>{
-      if(m?.status && typeof m.progress==='number'){
-        const pct=Math.round(m.progress*100);
-        if(pct%10===0)setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${pct}%`);
+
+  // Run two lightweight OCR passes. PSM 6 is better for the regular profile
+  // layout, while PSM 11 helps when text is separated into small UI blocks.
+  const configs=[
+    {psm:'6',label:'التمرير الأساسي'},
+    {psm:'11',label:'التمرير الدقيق'}
+  ];
+  const texts=[];
+  for(const cfg of configs){
+    setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${cfg.label}...`);
+    const result=await Tesseract.recognize(file,'eng',{
+      config:{tessedit_pageseg_mode:cfg.psm},
+      logger:m=>{
+        if(m?.status && typeof m.progress==='number'){
+          const pct=Math.round(m.progress*100);
+          if(pct%10===0)setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${pct}%`);
+        }
       }
-    }
-  });
-  const text=result?.data?.text||'';
+    });
+    const text=result?.data?.text||'';
+    if(text.trim())texts.push(text);
+  }
+  const text=texts.join('\n');
   if(!text.trim())throw new Error(`لم يتمكن OCR من قراءة الصورة ${n}. استخدم صورة أوضح.`);
   return text;
 }
+
 async function submitPlayerUpdate(){
   if(playerUpdateBusy)return;
   if(!verifiedUserId||!sb){setPlayerUpdateStatus('err','تعذر التحقق من جلسة الدخول.');return;}
@@ -2146,8 +2219,8 @@ async function submitPlayerUpdate(){
     const text1=await browserOcrFile(playerUpdateFiles[1],1);
     const text2=await browserOcrFile(playerUpdateFiles[2],2);
     const parsed=browserParseScreenshots(text1,text2);
-    if(!parsed.player_tag || parsed.trophies==null || parsed.highest_trophies==null || parsed.wins==null || parsed.current_rank==null){
-      throw new Error('تعذر استخراج كل البيانات المطلوبة من الصور. تأكد أن اسم اللاعب وPlayer Tag والكؤوس والانتصارات والرانك ظاهرة بوضوح.');
+    if(!parsed.player_tag || parsed.trophies==null){
+      throw new Error('تعذر استخراج Player Tag أو الكؤوس الحالية من الصور. ارفع صورة أوضح ثم حاول مرة أخرى.');
     }
     setPlayerUpdateStatus('info','✅ اكتمل OCR. جارٍ رفع الصور وحفظ نتيجة الفحص...');
     const stamp=Date.now(),paths={};
@@ -2173,7 +2246,8 @@ async function submitPlayerUpdate(){
       result=fn.data;
     }catch(fnErr){
       console.error('process-player-update:',fnErr);
-      setPlayerUpdateStatus('warn','تم استلام الصور ونتيجة OCR، لكن تعذر إكمال الاعتماد الآلي. سيظهر الطلب للمراجعة اليدوية.');
+      const fnMessage = fnErr?.message || fnErr?.error?.message || (typeof fnErr === 'string' ? fnErr : 'خطأ غير معروف');
+      setPlayerUpdateStatus('warn',`تم استلام الصور ونتيجة OCR، لكن تعذر إكمال الاعتماد الآلي. سيظهر الطلب للمراجعة اليدوية. (${fnMessage})`);
       return;
     }
     if(result?.decision==='approved'){
