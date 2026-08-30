@@ -307,7 +307,6 @@
   .pm-avatar img{ width:100%; height:100%; object-fit:cover; }
   .pm-name{ font-family:'Lalezar'; font-size:26px; color:var(--ink); word-break:break-word; }
   .pm-tag{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin-top:2px; }
-  .pm-social{ font-size:12.5px; color:var(--ink-soft); font-weight:700; margin-top:3px; text-align:center; direction:ltr; width:100%; }
   .pm-clan{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:#EFE7FF; color:var(--primary-deep); font-weight:800; font-size:11.5px; padding:6px 14px; border-radius:20px; }
   .pm-body{ padding:22px 24px 26px; }
   .pm-stats{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:24px; }
@@ -602,6 +601,159 @@
   .overview-update-row{display:flex;align-items:center;justify-content:flex-start;gap:10px;margin:-6px 0 20px}.overview-update-btn{border:0;border-radius:14px;padding:10px 15px;background:linear-gradient(145deg,var(--primary),var(--primary-deep));color:#fff;font:800 12px Cairo;cursor:pointer;box-shadow:0 8px 18px rgba(91,50,214,.18)}.overview-update-btn:hover{transform:translateY(-1px)}
   .auto-review-note{padding:10px 12px;border-radius:12px;background:#FFF7DD;color:#8B5A00;font-size:10px;font-weight:800;line-height:1.7;margin-top:10px}
   @media(max-width:700px){.player-update-grid{grid-template-columns:1fr}.player-update-actions{flex-direction:column}.player-update-modal{max-height:95vh}.overview-update-row{margin-top:-4px}}
+
+
+  /* ==========================================================
+     RMD NULL — NEW VISUAL BACKGROUNDS
+     Uses the four supplied artwork images without changing the
+     site's HTML structure, navigation, Supabase logic, or data.
+     ========================================================== */
+
+  /* 1) Overview hero: wide artwork behind the top of the page.
+     It stays inside the main content and never enters the sidebar. */
+  #tab-overview{
+    position:relative;
+    isolation:isolate;
+  }
+  #tab-overview::before{
+    content:"";
+    position:absolute;
+    z-index:-1;
+    top:-26px;
+    left:-28px;
+    right:-28px;
+    height:570px;
+    pointer-events:none;
+    background-image:
+      linear-gradient(to bottom,
+        rgba(255,255,255,.05) 0%,
+        rgba(255,255,255,.08) 38%,
+        rgba(251,249,255,.55) 70%,
+        rgba(251,249,255,1) 100%),
+      url('assets/site-backgrounds/overview-hero.jpg');
+    background-repeat:no-repeat;
+    background-size:cover;
+    background-position:center top;
+    border-radius:0 0 34px 34px;
+    opacity:.96;
+  }
+  #tab-overview > *{ position:relative; z-index:1; }
+  #tab-overview > .page-head{
+    width:fit-content;
+    max-width:100%;
+    padding:9px 14px;
+    border-radius:16px;
+    background:rgba(255,255,255,.72);
+    border:1px solid rgba(255,255,255,.72);
+    box-shadow:0 8px 24px rgba(36,23,72,.07);
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+  }
+
+  /* 2) Player profile: artwork is restricted to the upper identity
+     block only. The statistics/body remain on the original surface. */
+  .pm-head{
+    position:relative;
+    overflow:hidden;
+    background-image:
+      linear-gradient(to bottom,
+        rgba(255,255,255,.16) 0%,
+        rgba(247,243,255,.48) 48%,
+        rgba(251,249,255,.96) 100%),
+      url('assets/site-backgrounds/player-profile.jpg');
+    background-size:cover;
+    background-position:center 42%;
+    border-bottom:1px solid rgba(216,207,241,.9);
+  }
+  .pm-head > *{ position:relative; z-index:1; }
+  .pm-avatar{
+    box-shadow:0 10px 26px rgba(36,23,72,.28), 0 0 0 4px rgba(255,255,255,.62);
+  }
+  .pm-name,.pm-tag,.pm-rank,.pm-clan{ text-shadow:0 1px 2px rgba(255,255,255,.75); }
+
+  /* 3) Top-three podium: battle artwork stays clipped inside the card.
+     The center remains visually calm so the three podium columns stay clear. */
+  .podium-card{
+    position:relative;
+    overflow:hidden;
+    background-image:
+      linear-gradient(to bottom,
+        rgba(251,249,255,.32) 0%,
+        rgba(251,249,255,.14) 35%,
+        rgba(36,23,72,.08) 100%),
+      url('assets/site-backgrounds/top-three.jpg');
+    background-size:cover;
+    background-position:center center;
+  }
+  .podium-card > *{ position:relative; z-index:1; }
+  .podium-card h3{
+    display:inline-block;
+    padding:7px 12px;
+    border-radius:12px;
+    background:rgba(255,255,255,.78);
+    backdrop-filter:blur(4px);
+    -webkit-backdrop-filter:blur(4px);
+  }
+  .podium .p-slot{ filter:drop-shadow(0 7px 10px rgba(36,23,72,.14)); }
+
+  /* 4) Sidebar: vertical landscape covers the complete sidebar, including
+     the Rmd Null branding area, while the controls remain readable. */
+  .sidebar{
+    position:relative;
+    overflow:hidden;
+    background-image:
+      linear-gradient(to bottom,
+        rgba(255,255,255,.82) 0%,
+        rgba(255,255,255,.62) 38%,
+        rgba(247,243,255,.78) 100%),
+      url('assets/site-backgrounds/sidebar-landscape.jpg');
+    background-size:cover;
+    background-position:center top;
+    background-repeat:no-repeat;
+  }
+  .sidebar > *{ position:relative; z-index:1; }
+  .sb-brand{
+    background:rgba(255,255,255,.50);
+    border:1px solid rgba(255,255,255,.65);
+    border-radius:18px;
+    margin-bottom:5px;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+  }
+  .nav-item{
+    background:rgba(255,255,255,.52);
+    border:1px solid rgba(255,255,255,.42);
+    box-shadow:0 3px 10px rgba(36,23,72,.035);
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
+  .nav-item:hover{ background:rgba(255,255,255,.78); }
+  .sidebar-foot{
+    background:rgba(255,255,255,.58);
+    border-radius:12px;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
+
+  /* Keep the artwork elegant on smaller screens rather than zooming too hard. */
+  @media(max-width:1024px){
+    #tab-overview::before{ left:-18px; right:-18px; height:500px; }
+    .sidebar{ background-position:center top; }
+  }
+  @media(max-width:640px){
+    #tab-overview::before{
+      top:-18px;
+      left:-20px;
+      right:-20px;
+      height:430px;
+      background-position:center top;
+      border-radius:0 0 26px 26px;
+    }
+    #tab-overview > .page-head{ padding:8px 11px; }
+    .podium-card{ background-position:center center; }
+    .podium-card h3{ font-size:15px; }
+    .pm-head{ background-position:center 40%; }
+  }
 
 </style>
 </head>
@@ -929,7 +1081,7 @@
       </div>
       <div class="player-update-warning">⚠️ ستخضع الصور لفحص بشري وآلي. أي محاولة غش أو تزوير للمعلومات سيتم اكتشافها، وقد يُرفض الطلب ويُسجّل إنذار أولي على الحساب.</div>
       <div class="player-update-status" id="playerUpdateStatus"></div>
-      <div class="player-update-actions"><button type="button" class="btn-primary" id="submitPlayerUpdateBtn" style="margin-top:0"><span>🔄 إرسال للمراجعة</span></button><button type="button" class="btn-primary" id="cancelPlayerUpdateBtn" style="margin-top:0;background:#F2EEFF;color:var(--primary-deep);box-shadow:none">إلغاء</button></div>
+      <div class="player-update-actions"><button type="button" class="btn-primary" id="submitPlayerUpdateBtn" style="margin-top:0"><span>🔄 إرسال وتحديث المعلومات</span></button><button type="button" class="btn-primary" id="cancelPlayerUpdateBtn" style="margin-top:0;background:#F2EEFF;color:var(--primary-deep);box-shadow:none">إلغاء</button></div>
     </div>
   </div>
 </div>
@@ -1741,7 +1893,7 @@ function renderProfileContent(p){
       <div class="pm-avatar">${avatar}</div>
       <div class="pm-name" id="pmName">${name}</div>
       ${p.player_tag ? `<div class="pm-tag">${escapeHtml(p.player_tag)}</div>` : ""}
-      ${p.social_username ? `<div class="pm-social" dir="ltr">${escapeHtml(p.social_username)}</div>` : ""}
+      ${p.social_username ? `<div class="pm-tag" style="direction:ltr;text-align:right">${escapeHtml(p.social_username)}</div>` : ""}
       ${p.verified ? '<div style="display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:#E8FAF2;color:#149E77;border:1px solid #BFEAD6;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:800;">✓ موثق</div>' : ''}<div class="pm-rank rank-${ri.cls}">${ri.icon} رتبة ${ri.label}</div>
       ${clan}
     </div>
@@ -2021,31 +2173,26 @@ try{
 }catch(e){ console.error(e); }
 
 /* ============================================================
-   PLAYER DATA UPDATE — MANUAL REVIEW ONLY
+   PLAYER DATA UPDATE — two screenshots + server-side OCR
    ============================================================ */
 const PLAYER_UPDATE_BUCKET = "verification-docs";
-const PLAYER_UPDATE_MAX_MB = 8;
+const PLAYER_UPDATE_MAX_MB = 5;
 const PLAYER_UPDATE_ALLOWED_TYPES = ["image/jpeg","image/png","image/webp"];
 let playerUpdateFiles = {1:null,2:null};
 let playerUpdateBusy = false;
 
 function setPlayerUpdateStatus(kind,text){
   const el=document.getElementById('playerUpdateStatus'); if(!el)return;
-  el.className='player-update-status show '+(kind||'info');
-  el.textContent=text||'';
+  el.className='player-update-status show '+(kind||'info'); el.textContent=text||'';
 }
-function clearPlayerUpdateStatus(){
-  const el=document.getElementById('playerUpdateStatus');
-  if(el){el.className='player-update-status';el.textContent='';}
-}
+function clearPlayerUpdateStatus(){const el=document.getElementById('playerUpdateStatus');if(el){el.className='player-update-status';el.textContent='';}}
 function resetPlayerUpdateForm(){
   playerUpdateFiles={1:null,2:null}; clearPlayerUpdateStatus();
   [1,2].forEach(n=>{
     const input=document.getElementById('pudFile'+n), preview=document.getElementById('pudPreview'+n), drop=document.getElementById('pudDrop'+n);
     if(input)input.value=''; if(preview)preview.classList.remove('show'); if(drop)drop.style.display='flex';
   });
-  const btn=document.getElementById('submitPlayerUpdateBtn');
-  if(btn){btn.disabled=false;btn.innerHTML='<span>📤 إرسال للمراجعة</span>';}
+  const btn=document.getElementById('submitPlayerUpdateBtn'); if(btn){btn.disabled=false;btn.innerHTML='<span>🔄 إرسال وتحديث المعلومات</span>';}
   playerUpdateBusy=false;
 }
 function openPlayerUpdateModal(){
@@ -2059,7 +2206,7 @@ function closePlayerUpdateModal(){
 function handlePlayerUpdateFile(n,file){
   if(!file)return;
   if(!PLAYER_UPDATE_ALLOWED_TYPES.includes(file.type)){setPlayerUpdateStatus('err','صيغة الصورة غير مدعومة. استخدم JPG أو PNG أو WEBP.');return;}
-  if(file.size>PLAYER_UPDATE_MAX_MB*1024*1024){setPlayerUpdateStatus('err','حجم الصورة كبير جدًا. الحد الأقصى 8MB لكل صورة.');return;}
+  if(file.size>PLAYER_UPDATE_MAX_MB*1024*1024){setPlayerUpdateStatus('err','حجم الصورة كبير جدًا. الحد الأقصى 5MB لكل صورة.');return;}
   playerUpdateFiles[n]=file;
   const reader=new FileReader(); reader.onload=e=>{
     const img=document.getElementById('pudImg'+n), name=document.getElementById('pudName'+n), preview=document.getElementById('pudPreview'+n), drop=document.getElementById('pudDrop'+n);
@@ -2075,13 +2222,171 @@ function bindPlayerUpdateUploader(n){
   ['dragleave','drop'].forEach(ev=>box.addEventListener(ev,e=>{e.preventDefault();box.classList.remove('drag');}));
   box.addEventListener('drop',e=>handlePlayerUpdateFile(n,e.dataTransfer.files?.[0]));
 }
-async function manualReviewProgress(){
-  const steps=[0,12,24,38,52,67,81,94,100];
-  for(const pct of steps){
-    setPlayerUpdateStatus('info',`🔎 جارٍ فحص الصورتين وتجهيز الطلب للمراجعة... ${pct}%`);
-    await new Promise(r=>setTimeout(r,pct===100?500:350));
-  }
+function browserNormalizeText(s){
+  return String(s||'')
+    .replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
+    .replace(/[٬,]/g,'')
+    .replace(/[|]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
 }
+function browserNumbersFrom(text){
+  return [...browserNormalizeText(text).matchAll(/\b\d{1,7}\b/g)]
+    .map(m=>Number(m[0])).filter(Number.isFinite);
+}
+function browserNormalizeTag(raw){
+  let s=String(raw||'').toUpperCase().replace(/[^A-Z0-9#\s]/g,'').replace(/\s+/g,'');
+  if(!s)return null;
+  if(!s.startsWith('#'))s='#'+s;
+  // Common OCR confusions for Null's/Supercell player tags.
+  // Keep the replacements conservative and only accept the official alphabet afterwards.
+  s=s.replace(/B/g,'8').replace(/O/g,'0').replace(/I/g,'J').replace(/S/g,'2').replace(/Z/g,'2');
+  const chars='0289PYLQGRJCUV';
+  const body=s.slice(1);
+  if(body.length<3||body.length>15)return null;
+  for(const ch of body)if(!chars.includes(ch))return null;
+  return '#'+body;
+}
+function browserTagVariants(raw){
+  const base=String(raw||'').toUpperCase().replace(/[^A-Z0-9#\s]/g,'').replace(/\s+/g,'');
+  if(!base)return [];
+  const variants=new Set([base,base.replace(/B/g,'8'),base.replace(/O/g,'0'),base.replace(/I/g,'J'),base.replace(/B/g,'8').replace(/O/g,'0').replace(/I/g,'J')]);
+  return [...variants];
+}
+function browserExtractTag(text){
+  const raw=String(text||'').toUpperCase();
+  const candidates=[];
+  const hashCandidates=raw.match(/#[A-Z0-9\s]{3,22}/g)||[];
+  candidates.push(...hashCandidates);
+  // OCR may split the tag into several tokens or omit '#'. Join short adjacent tokens.
+  const tokens=raw.split(/\s+/).map(x=>x.replace(/[^A-Z0-9]/g,'')).filter(Boolean);
+  for(let i=0;i<tokens.length;i++){
+    candidates.push(tokens[i]);
+    let joined='';
+    for(let j=i;j<Math.min(tokens.length,i+4);j++){
+      joined+=tokens[j];
+      if(joined.length>=6 && joined.length<=15)candidates.push(joined);
+      if(joined.length>15)break;
+    }
+  }
+  for(const candidate of candidates){
+    for(const variant of browserTagVariants(candidate)){
+      const t=browserNormalizeTag(variant);
+      if(t)return t;
+    }
+  }
+  return null;
+}
+
+function browserLabelNumber(text,labelPatterns,maxGap=80){
+  const normalized=browserNormalizeText(text);
+  for(const label of labelPatterns){
+    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','i');
+    const m=normalized.match(re);
+    if(m){const n=Number(m[1]);if(Number.isFinite(n))return n;}
+  }
+  return null;
+}
+function browserNumbersNearLabel(text,labelPatterns,maxGap=100){
+  const normalized=browserNormalizeText(text);
+  const out=[];
+  for(const label of labelPatterns){
+    const re=new RegExp(label+'[^0-9]{0,'+maxGap+'}(\\d{1,7})','ig');
+    let m; while((m=re.exec(normalized))){const n=Number(m[1]);if(Number.isFinite(n))out.push(n);}
+  }
+  return [...new Set(out)];
+}
+function browserLikelyTrophyNumbers(text){
+  const nums=browserNumbersFrom(text).filter(n=>n>=0 && n<=250000);
+  // Ignore obvious years/date fragments and tiny UI counters. Trophy totals are normally much larger.
+  const filtered=nums.filter(n=>n>=100 || n===0);
+  return [...new Set(filtered)].sort((a,b)=>b-a);
+}
+function browserParseScreenshots(text1,text2){
+  const t1=browserNormalizeText(text1), t2=browserNormalizeText(text2), all=t1+' '+t2;
+  const tag=browserExtractTag(all) || browserExtractTag(text1) || browserExtractTag(text2);
+
+  const trophyLabels=[
+    'troph(?:y|ies)','cups?','troph','current\\s+troph(?:y|ies)','current\\s+cups?',
+    'total\\s+troph(?:y|ies)','total\\s+cups?'
+  ];
+  const highestLabels=[
+    'highest[^0-9]{0,30}troph(?:y|ies)','highest[^0-9]{0,30}cups?',
+    'best[^0-9]{0,30}troph(?:y|ies)','best[^0-9]{0,30}cups?'
+  ];
+  const winLabels=['(?:3v3|3\\s*v\\s*3)[^a-z0-9]{0,25}wins?','wins?','victories','win[s]?'];
+  const rankLabels=['current\\s+rank','rank(?:ing)?','league','tier'];
+
+  const trophyByLabel=browserLabelNumber(t1,trophyLabels,80) ?? browserLabelNumber(t2,trophyLabels,80);
+  const highest=browserLabelNumber(t1,highestLabels,90) ?? browserLabelNumber(t2,highestLabels,90);
+
+  // If labels are not recognized, use a safe trophy-only fallback instead of failing completely.
+  // We never use this fallback for wins/rank because those fields contain many unrelated numbers.
+  const trophyNums=[...new Set([...browserLikelyTrophyNumbers(t1),...browserLikelyTrophyNumbers(t2)])].sort((a,b)=>b-a);
+  let trophies=trophyByLabel;
+  let best=highest;
+  if(trophies==null){
+    // Prefer the smaller of two plausible trophy totals (current <= highest).
+    if(trophyNums.length>=2)trophies=trophyNums.slice(0,2).sort((a,b)=>a-b)[0];
+    else if(trophyNums.length===1)trophies=trophyNums[0];
+  }
+  if(best==null && trophyNums.length>=2){
+    const pair=trophyNums.slice(0,2).sort((a,b)=>a-b);
+    if(trophies!=null)best=pair.find(n=>n>=trophies) ?? pair[1];
+    else best=pair[1];
+  }
+
+  const wins=browserLabelNumber(t2,winLabels,100) ?? browserLabelNumber(t1,winLabels,100);
+  const rank=browserLabelNumber(t2,rankLabels,100) ?? browserLabelNumber(t1,rankLabels,100);
+  return {
+    player_tag:tag,
+    trophies,
+    highest_trophies:best,
+    wins,
+    current_rank:rank,
+    _diagnostics:{
+      numbers_image1:browserNumbersFrom(t1),
+      numbers_image2:browserNumbersFrom(t2),
+      trophy_candidates:trophyNums,
+      labeled_wins:browserNumbersNearLabel(t1,winLabels).concat(browserNumbersNearLabel(t2,winLabels)),
+      labeled_rank:browserNumbersNearLabel(t1,rankLabels).concat(browserNumbersNearLabel(t2,rankLabels)),
+      labeled_highest:browserNumbersNearLabel(t1,highestLabels).concat(browserNumbersNearLabel(t2,highestLabels)),
+      detected_tag:tag,
+      note:'تم استخدام بديل آمن للكؤوس فقط عند غياب اسم الحقل؛ الانتصارات والرانك لا تُملأ من أرقام عشوائية.'
+    }
+  };
+}
+
+async function browserOcrFile(file,n){
+  if(!window.Tesseract)throw new Error('تعذر تحميل محرك OCR في المتصفح. تحقق من اتصال الإنترنت ثم أعد المحاولة.');
+  setPlayerUpdateStatus('info',`🔎 جارٍ قراءة الصورة ${n} من 2...`);
+
+  // Run two lightweight OCR passes. PSM 6 is better for the regular profile
+  // layout, while PSM 11 helps when text is separated into small UI blocks.
+  const configs=[
+    {psm:'6',label:'التمرير الأساسي'},
+    {psm:'11',label:'التمرير الدقيق'}
+  ];
+  const texts=[];
+  for(const cfg of configs){
+    setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${cfg.label}...`);
+    const result=await Tesseract.recognize(file,'eng',{
+      config:{tessedit_pageseg_mode:cfg.psm},
+      logger:m=>{
+        if(m?.status && typeof m.progress==='number'){
+          const pct=Math.round(m.progress*100);
+          if(pct%10===0)setPlayerUpdateStatus('info',`🔎 فحص الصورة ${n}: ${pct}%`);
+        }
+      }
+    });
+    const text=result?.data?.text||'';
+    if(text.trim())texts.push(text);
+  }
+  const text=texts.join('\n');
+  if(!text.trim())throw new Error(`لم يتمكن OCR من قراءة الصورة ${n}. استخدم صورة أوضح.`);
+  return text;
+}
+
 async function submitPlayerUpdate(){
   if(playerUpdateBusy)return;
   if(!verifiedUserId||!sb){setPlayerUpdateStatus('err','تعذر التحقق من جلسة الدخول.');return;}
@@ -2091,9 +2396,15 @@ async function submitPlayerUpdate(){
   if(btn){btn.disabled=true;btn.innerHTML='<span>⏳ جارٍ فحص الصور...</span>';}
   clearPlayerUpdateStatus();
   try{
-    // لا يوجد OCR تلقائي هنا. الفحص هو تجهيز/رفع الصور فقط، والبيانات يملؤها الأدمن يدويًا.
-    await manualReviewProgress();
-    setPlayerUpdateStatus('info','📤 جارٍ رفع الصورتين وحفظ طلب المراجعة...');
+    // OCR is performed locally in the browser. The server function only validates
+    // the parsed result and applies the database-side decision/update.
+    const text1=await browserOcrFile(playerUpdateFiles[1],1);
+    const text2=await browserOcrFile(playerUpdateFiles[2],2);
+    const parsed=browserParseScreenshots(text1,text2);
+    if(!parsed.player_tag || parsed.trophies==null){
+      throw new Error('تعذر استخراج Player Tag أو الكؤوس الحالية من الصور. ارفع صورة أوضح ثم حاول مرة أخرى.');
+    }
+    setPlayerUpdateStatus('info','✅ اكتمل OCR. جارٍ رفع الصور وحفظ نتيجة الفحص...');
     const stamp=Date.now(),paths={};
     for(const n of [1,2]){
       const file=playerUpdateFiles[n],ext=(file.name.split('.').pop()||'jpg').toLowerCase();
@@ -2102,32 +2413,41 @@ async function submitPlayerUpdate(){
       if(up.error)throw up.error;
       paths[n]=path;
     }
-    const {data:player}=await sb.from('players').select('username,player_tag,clan,trophies,best_trophies,wins,current_rank').eq('user_id',verifiedUserId).maybeSingle();
-    const snapshot=player||{};
+    const ocrPayload={parsed,raw:{image1:text1,image2:text2,combined:`${text1}\n${text2}`},generated_at:new Date().toISOString(),source:'browser'};
     const ins=await sb.from('verification_requests').insert({
-      user_id:verifiedUserId,
-      status:'pending',
-      request_type:'data_update',
-      proof_image_path:paths[1],
-      image_path_2:paths[2],
-      player_tag:snapshot.player_tag||null,
-      current_rank:null,
-      wins:null,
-      account_created_date:null,
-      social_username:null,
-      ocr_extracted_json:{source:'manual_review',message:'لا يوجد OCR تلقائي. البيانات يملؤها الأدمن يدويًا بعد مراجعة الصورتين.',player_snapshot:snapshot,generated_at:new Date().toISOString()}
+      user_id:verifiedUserId,status:'pending',request_type:'data_update',
+      proof_image_path:paths[1],image_path_2:paths[2],
+      player_tag:parsed.player_tag,current_rank:Number(parsed.current_rank),ocr_extracted_json:ocrPayload
     }).select('id').single();
     if(ins.error)throw ins.error;
-    setPlayerUpdateStatus('ok','✅ تم إرسال الصور للمراجعة بنجاح. قد يستغرق تحديث معلومات الحساب من 10 إلى 20 دقيقة.');
-    if(btn)btn.innerHTML='<span>✓ تم إرسال الطلب</span>';
-    setTimeout(()=>{closePlayerUpdateModal();},3500);
+    setPlayerUpdateStatus('info','تم رفع الصور. جارٍ التحقق من البيانات وحفظ النتيجة...');
+    let result=null;
+    try{
+      const fn=await sb.functions.invoke('process-player-update',{body:{request_id:ins.data.id,parsed,ocr_raw:{image1:text1,image2:text2,combined:`${text1}\n${text2}`}}});
+      if(fn.error)throw fn.error;
+      result=fn.data;
+    }catch(fnErr){
+      console.error('process-player-update:',fnErr);
+      const fnMessage = fnErr?.message || fnErr?.error?.message || (typeof fnErr === 'string' ? fnErr : 'خطأ غير معروف');
+      setPlayerUpdateStatus('warn',`تم استلام الصور ونتيجة OCR، لكن تعذر إكمال الاعتماد الآلي. سيظهر الطلب للمراجعة اليدوية. (${fnMessage})`);
+      return;
+    }
+    if(result?.decision==='approved'){
+      setPlayerUpdateStatus('ok','✅ تم تحديث معلوماتك بنجاح. أصبحت البيانات الجديدة معروضة في الموقع.');
+      await loadDashboard(); await loadCurrentPlayerAppearance();
+    }else if(result?.decision==='pending_review'){
+      setPlayerUpdateStatus('warn','⏳ تم تعليق التحديث للمراجعة اليدوية. ستبقى بياناتك القديمة ظاهرة حتى يراجع المشرف الطلب.');
+    }else if(result?.decision==='rejected'){
+      setPlayerUpdateStatus('err','❌ تم رفض تحديث المعلومات تلقائيًا بسبب تناقض في البيانات. يمكنك رفع صور أوضح والمحاولة مرة أخرى.');
+    }else{
+      setPlayerUpdateStatus('info','تم استلام طلب التحديث وسيتم فحصه قبل اعتماد البيانات.');
+    }
   }catch(e){
     console.error('submitPlayerUpdate:',e);
-    const msg=e?.message||String(e)||'حاول مرة أخرى.';
-    setPlayerUpdateStatus('err','حدث خطأ أثناء إرسال التحديث: '+msg);
+    setPlayerUpdateStatus('err','حدث خطأ أثناء فحص الصور أو إرسال التحديث: '+(e.message||'حاول مرة أخرى.'));
   }finally{
     playerUpdateBusy=false;
-    if(btn && !btn.innerHTML.includes('تم إرسال')){btn.disabled=false;btn.innerHTML='<span>📤 إرسال للمراجعة</span>';}
+    if(btn){btn.disabled=false;btn.innerHTML='<span>🔄 إرسال وتحديث المعلومات</span>';}
   }
 }
 try{
@@ -2140,6 +2460,252 @@ try{
   bindPlayerUpdateUploader(1); bindPlayerUpdateUploader(2);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('playerUpdateOverlay')?.classList.contains('show'))closePlayerUpdateModal();});
 }catch(e){console.error('player update UI:',e);}
+
+/* ============================================================
+   نموذج طلب التحقق — التحقق من الحقول، رفع الصورة، والحفظ في Supabase
+   ============================================================ */
+const VERIFY_BUCKET = "verification-docs";
+const VERIFY_MAX_MB = 5;
+const VERIFY_ALLOWED_TYPES = ["image/jpeg","image/png","image/webp"];
+let vfSelectedFile = null;
+let vfSubmitting = false;
+let vfPrefilled = false;
+
+function vfClearErrors(){
+  ["vfWinsErr","vfDateErr","vfTagErr","vfSocialErr","vfFileErr","vfGeneralErr"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = "";
+  });
+  document.querySelectorAll(".vf-field").forEach(f => f.classList.remove("has-error"));
+}
+
+function vfSetError(fieldId, errId, text){
+  const f = document.getElementById(fieldId);
+  const e = document.getElementById(errId);
+  if(f) f.classList.add("has-error");
+  if(e) e.textContent = text;
+}
+
+function normalizePlayerTag(v){
+  v = (v || "").trim().toUpperCase();
+  if(v && !v.startsWith("#")) v = "#" + v;
+  return v;
+}
+function isValidPlayerTag(v){
+  return /^#[A-Z0-9]{3,12}$/.test(v);
+}
+function normalizeSocialHandle(v){
+  v = (v || "").trim();
+  if(v && !v.startsWith("@")) v = "@" + v;
+  return v;
+}
+
+function resetVerifyForm(clearInputs){
+  vfClearErrors();
+  vfSelectedFile = null;
+  const preview = document.getElementById("vfPreview");
+  const box = document.getElementById("vfUploadBox");
+  if(preview) preview.classList.remove("show");
+  if(box) box.style.display = "block";
+  if(clearInputs){
+    ["vfWins","vfDate","vfTag","vfSocial","vfFileInput"].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = "";
+    });
+  }
+  setVfSubmitting(false);
+}
+
+function setVfSubmitting(state){
+  vfSubmitting = state;
+  const btn = document.getElementById("vfSubmitBtn");
+  if(!btn) return;
+  btn.classList.toggle("loading", state);
+  btn.disabled = state;
+}
+
+// رفع الصورة: نقر على الصندوق أو سحب وإفلات
+try{
+  const box = document.getElementById("vfUploadBox");
+  const fileInput = document.getElementById("vfFileInput");
+  box.addEventListener("click", () => fileInput.click());
+  box.addEventListener("keydown", (e) => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener("change", (e) => { if(e.target.files && e.target.files[0]) handleVfFile(e.target.files[0]); });
+
+  ["dragenter","dragover"].forEach(ev => box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.add("drag"); }));
+  ["dragleave","drop"].forEach(ev => box.addEventListener(ev, (e) => { e.preventDefault(); box.classList.remove("drag"); }));
+  box.addEventListener("drop", (e) => {
+    if(e.dataTransfer.files && e.dataTransfer.files[0]) handleVfFile(e.dataTransfer.files[0]);
+  });
+
+  document.getElementById("vfChangeBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    vfSelectedFile = null;
+    fileInput.value = "";
+    document.getElementById("vfPreview").classList.remove("show");
+    box.style.display = "block";
+  });
+}catch(e){ console.error(e); }
+
+function handleVfFile(file){
+  document.getElementById("vfFileErr").textContent = "";
+  if(!VERIFY_ALLOWED_TYPES.includes(file.type)){
+    document.getElementById("vfFileErr").textContent = "صيغة الملف غير مدعومة. استخدم JPG أو PNG أو WEBP.";
+    return;
+  }
+  if(file.size > VERIFY_MAX_MB * 1024 * 1024){
+    document.getElementById("vfFileErr").textContent = "حجم الصورة كبير جدًا (الحد الأقصى " + VERIFY_MAX_MB + "MB).";
+    return;
+  }
+  vfSelectedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById("vfPreviewImg").src = e.target.result;
+    document.getElementById("vfPreviewName").textContent = file.name;
+    document.getElementById("vfPreview").classList.add("show");
+    document.getElementById("vfUploadBox").style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+// عند فتح الصفحة: تحقق هل يوجد طلب سابق (pending / approved / rejected) قبل عرض النموذج
+async function loadVerificationStatus(){
+  const wrap = document.getElementById("verifyStatusWrap");
+  const form = document.getElementById("verifyForm");
+  wrap.style.display = "none";
+  form.style.display = "block";
+  if(!sb || !verifiedUserId) return;
+
+  // تعبئة عدد الانتصارات تلقائيًا من بيانات اللاعب الحالية إن وُجدت، مرة واحدة فقط
+  if(!vfPrefilled){
+    const mine = playersCache.find(p => p.user_id === verifiedUserId);
+    if(mine && (mine.wins || mine.wins === 0) && !document.getElementById("vfWins").value){
+      document.getElementById("vfWins").value = mine.wins;
+    }
+    vfPrefilled = true;
+  }
+
+  try{
+    const { data, error } = await sb
+      .from("verification_requests")
+      .select("status, created_at, rejection_reason")
+      .eq("user_id", verifiedUserId)
+      .order("created_at", { ascending:false })
+      .limit(1)
+      .maybeSingle();
+
+    if(error) throw error;
+    if(!data) return; // لا يوجد طلب سابق — اعرض النموذج كما هو
+
+    if(data.status === "pending"){
+      wrap.innerHTML = `<div class="verify-status-card pending">
+        <div class="ic">⏳</div><h3>طلبك قيد المراجعة</h3>
+        <p>تم استلام طلب التحقق الخاص بك وسيتم مراجعته خلال 24 ساعة القادمة. لا حاجة لإرسال طلب جديد.</p>
+      </div>`;
+      wrap.style.display = "block";
+      form.style.display = "none";
+    }else if(data.status === "approved"){
+      wrap.innerHTML = `<div class="verify-status-card success">
+        <div class="ic">✅</div><h3>حسابك موثّق</h3>
+        <p>تم توثيق حسابك بنجاح، وأصبح ظاهرًا للعامة ومؤهلاً للمشاركة في المسابقات والحصول على الألقاب.</p>
+      </div>`;
+      wrap.style.display = "block";
+      form.style.display = "none";
+    }else if(data.status === "rejected"){
+      wrap.innerHTML = `<div class="verify-status-card rejected">
+        <div class="ic">⚠️</div><h3>تم رفض طلبك السابق</h3>
+        <p>${data.rejection_reason ? escapeHtml(data.rejection_reason) : "لم تُستوفَ شروط التحقق."} يمكنك تصحيح البيانات وإرسال طلب جديد بالأسفل.</p>
+      </div>`;
+      wrap.style.display = "block";
+      form.style.display = "block";
+    }
+  }catch(e){
+    console.error(e);
+  }
+}
+
+// إرسال طلب التحقق: تحقق من الحقول، ارفع الصورة إلى Storage، ثم أدرج الطلب في قاعدة البيانات
+async function submitVerificationRequest(){
+  if(vfSubmitting) return;
+  vfClearErrors();
+
+  const wins = document.getElementById("vfWins").value.trim();
+  const dateVal = document.getElementById("vfDate").value;
+  const tag = normalizePlayerTag(document.getElementById("vfTag").value);
+  const social = normalizeSocialHandle(document.getElementById("vfSocial").value);
+
+  let hasError = false;
+
+  if(wins === "" || !/^\d+$/.test(wins)){
+    vfSetError("vfWinsField","vfWinsErr","الرجاء إدخال عدد صحيح للانتصارات.");
+    hasError = true;
+  }
+  if(!dateVal){
+    vfSetError("vfDateField","vfDateErr","الرجاء اختيار تاريخ إنشاء الحساب.");
+    hasError = true;
+  }else{
+    const d = new Date(dateVal);
+    if(isNaN(d.getTime()) || d > new Date()){
+      vfSetError("vfDateField","vfDateErr","التاريخ غير صالح.");
+      hasError = true;
+    }
+  }
+  if(!tag || !isValidPlayerTag(tag)){
+    vfSetError("vfTagField","vfTagErr","صيغة الـ Player Tag غير صحيحة، مثال: #2YGQ8RGG");
+    hasError = true;
+  }
+  if(!social || social === "@"){
+    vfSetError("vfSocialField","vfSocialErr","الرجاء إدخال اليوزر الاجتماعي.");
+    hasError = true;
+  }
+  if(!vfSelectedFile){
+    document.getElementById("vfFileErr").textContent = "الرجاء إرفاق صورة حسابك للتوثيق.";
+    hasError = true;
+  }
+  if(!verifiedUserId || !sb){
+    document.getElementById("vfGeneralErr").textContent = "تعذر التحقق من جلستك، الرجاء إعادة تسجيل الدخول.";
+    hasError = true;
+  }
+
+  if(hasError) return;
+
+  setVfSubmitting(true);
+  try{
+    const ext = (vfSelectedFile.name.split(".").pop() || "jpg").toLowerCase();
+    const path = `${verifiedUserId}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await sb.storage.from(VERIFY_BUCKET).upload(path, vfSelectedFile, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: vfSelectedFile.type
+    });
+    if(upErr) throw upErr;
+
+    const { error: insErr } = await sb.from("verification_requests").insert({
+      user_id: verifiedUserId,
+      wins: parseInt(wins, 10),
+      account_created_date: dateVal,
+      player_tag: tag,
+      social_username: social,
+      proof_image_path: path,
+      status: "pending"
+    });
+    if(insErr) throw insErr;
+
+    const wrap = document.getElementById("verifyStatusWrap");
+    wrap.innerHTML = `<div class="verify-status-card success">
+      <div class="ic">✅</div><h3>تم استلام طلب التحقق بنجاح!</h3>
+      <p>سيتم التحقق من حسابك خلال الـ 24 ساعة القادمة.</p>
+    </div>`;
+    wrap.style.display = "block";
+    document.getElementById("verifyForm").style.display = "none";
+  }catch(e){
+    console.error(e);
+    document.getElementById("vfGeneralErr").textContent = "حدث خطأ أثناء إرسال الطلب: " + (e.message || "حاول مرة أخرى.");
+  }finally{
+    setVfSubmitting(false);
+  }
+}
 </script>
 
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
