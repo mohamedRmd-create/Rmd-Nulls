@@ -702,10 +702,20 @@
     -webkit-backdrop-filter:blur(4px);
   }
   .podium .p-slot{ filter:drop-shadow(0 7px 10px rgba(36,23,72,.14)); }
-  /* 4) Sidebar: original site surface without the removed artwork. */
-  .sidebar{
-    position:relative;
-    overflow:hidden;
+  /* 4) Sidebar: original site surface without the removed artwork.
+     ملاحظة: position:relative + overflow:hidden هنا كانت تُلغي
+     position:fixed الخاص بقائمة الهاتف المنسدلة (off-canvas) المعرّفة
+     داخل @media(max-width:640px) أعلاه، لأن هذه القاعدة غير مقيدة بمقاس
+     شاشة وتأتي بعدها في الملف فتربح — فتبقى القائمة الجانبية كاملة الطول
+     ضمن تدفق الصفحة الطبيعي بدل أن تُخرَج خارج الشاشة، وهذا بالضبط ما كان
+     يسبب الفراغ الفارغ أعلى الصفحة وتجمّد التمرير باللمس على الهاتف.
+     نطبّق position:relative/overflow:hidden فقط على المقاسات الأكبر من
+     الهاتف حيث القائمة الجانبية ثابتة أصلاً ولا تحتاج للخروج عن الشاشة. */
+  @media(min-width:641px){
+    .sidebar{
+      position:relative;
+      overflow:hidden;
+    }
   }
   .sidebar > *{ position:relative; z-index:1; }
   .sb-brand{
@@ -866,6 +876,19 @@
      وباللمس على الهاتف. */
   @media(max-width:640px){
     body{ overscroll-behavior-y:contain; }
+  }
+
+  /* السبب الحقيقي لفراغ الأعلى وتجمّد اللمس على الهاتف تحديدًا:
+     .topbar يجمع position:sticky مع overflow:hidden معًا على نفس العنصر،
+     وهذا مزيج معروف يسبب في متصفحات الهاتف (خاصة Safari/iOS، وأحيانًا Chrome
+     على أندرويد) تجمّد التمرير باللمس وظهور فراغ عند أعلى الصفحة أثناء التمرير.
+     على اللابتوب (بالماوس) هذا المزيج لا يسبب أي مشكلة، لذلك نُلغي التثبيت
+     (sticky) فقط على الأجهزة اللمسية، ونبقيه يعمل بشكل طبيعي على سطح المكتب. */
+  @media (max-width:1024px), (hover:none) and (pointer:coarse){
+    .topbar{
+      position:relative !important;
+      top:0 !important;
+    }
   }
 
   /* The old overview-artwork mobile rules are intentionally disabled;
