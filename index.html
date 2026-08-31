@@ -28,7 +28,8 @@
   }
 
   /* ===== LOGIN ===== */
-  #login-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; padding:24px; }
+  #login-screen{ display:none; position:fixed; inset:0; min-height:100vh; align-items:center; justify-content:center; padding:24px; z-index:1000; background:rgba(246,243,255,.96); overflow:auto; }
+  body.login-open #login-screen{ display:flex; }
   .hex-bg{position:absolute; inset:0; overflow:hidden; z-index:0; opacity:.5;}
   .hex-bg span{
     position:absolute; width:70px; height:80px; background:var(--surface);
@@ -71,10 +72,20 @@
   .otp-resend .muted-link{ color:var(--primary-deep); font-weight:800; cursor:pointer; }
   .otp-resend .muted-link.disabled{ color:#B6ACD9; cursor:not-allowed; pointer-events:none; }
 
+  .login-close{ position:absolute; top:16px; left:16px; width:38px; height:38px; border:0; border-radius:12px; background:#F5F1FF; color:var(--primary-deep); font-size:20px; cursor:pointer; font-family:'Cairo'; font-weight:900; }
+  .login-close:hover{ background:#ECE5FF; }
+  .guest-login-btn{ border:0; border-radius:12px; padding:10px 16px; background:linear-gradient(145deg,var(--yellow),#FFB300); color:#241748; font-family:'Cairo'; font-weight:900; cursor:pointer; box-shadow:0 5px 14px rgba(255,201,60,.28); }
+  .guest-login-btn:hover{ transform:translateY(-1px); }
+  .guest-login-note{ font-size:11px; color:var(--ink-soft); margin-right:4px; }
+  body.guest-mode #userChipBtn, body.guest-mode #acctDropdown{ display:none !important; }
+  body.guest-mode #guestLoginBtn{ display:inline-flex; align-items:center; justify-content:center; }
+  body:not(.guest-mode) #guestLoginBtn{ display:none; }
+  body.guest-mode #openPlayerUpdateBtn{ display:none; }
+  body.guest-mode #acctAppearanceItem, body.guest-mode #acctVerifyItem, body.guest-mode #acctAdminItem{ display:none !important; }
+
   /* ===== APP SHELL ===== */
-  #app{ display:none; min-height:100vh; position:relative; }
-  #authToggle:checked ~ #login-screen{ display:none; }
-  #authToggle:checked ~ #app{ display:flex; }
+  #app{ display:flex; min-height:100vh; position:relative; }
+  #authToggle{ display:none !important; }
 
   .sidebar{ width:230px; background:var(--surface); border-left:1px solid var(--border); padding:22px 16px; display:flex; flex-direction:column; gap:6px; }
   .menu-btn{ display:none; align-items:center; justify-content:center; width:40px; height:40px; border-radius:12px; background:#F5F1FF; color:var(--primary-deep); font-size:18px; cursor:pointer; flex-shrink:0; }
@@ -92,6 +103,7 @@
   .nav-item:hover{ background:#F5F1FF; color:var(--ink); }
   .logout-lbl{ margin-top:auto; display:flex; align-items:center; gap:8px; padding:12px 14px; border-radius:12px; color:var(--pink); font-weight:800; font-size:13px; cursor:pointer; }
   .logout-lbl:hover{ background:#FFF0F5; }
+  body.guest-mode .logout-lbl{ display:none; }
   .sidebar-foot{ font-size:11px; color:#B6ACD9; padding:8px; text-align:center; }
 
   #app:has(#tabOverview:checked) label[for="tabOverview"],
@@ -731,11 +743,12 @@
     <span style="top:85%; right:80%; animation-delay:.9s;"></span>
   </div>
   <div class="login-card">
+    <button type="button" class="login-close" id="loginCloseBtn" aria-label="العودة للموقع">✕</button>
     <div class="brand-mark">R</div>
     <h1>Rmd Null</h1>
 
     <div id="joinStep1">
-      <p>سجّل بياناتك، وسنرسل رابط تسجيل دخول إلى بريدك لتأكيد حسابك. إن كان بريدك مسجلاً مسبقاً سيتم تسجيل دخولك تلقائياً لحسابك الحالي.</p>
+      <p>يمكنك تصفح الموقع واللاعبين والكلانات والموسم بدون حساب. لتفعيل ميزات الحساب والتعديل، سجّل بياناتك وسنرسل رابط تسجيل دخول إلى بريدك لتأكيد حسابك. إن كان بريدك مسجلاً مسبقاً سيتم تسجيل دخولك تلقائياً لحسابك الحالي.</p>
       <div class="field">
         <label>اسم اللاعب *</label>
         <input id="regUsername" type="text" placeholder="مثال: ذئب_الحلبة">
@@ -752,7 +765,7 @@
         <label>عدد الكؤوس الحالي (اختياري)</label>
         <input id="regTrophies" type="number" min="0" placeholder="0">
       </div>
-      <button id="joinBtn" class="btn-primary" onclick="handleJoin()">دخول / الانضمام إلى الحلبة</button>
+      <button id="joinBtn" class="btn-primary" onclick="handleJoin()">تسجيل الدخول / إنشاء حساب</button>
     </div>
 
     <div id="joinStep2" style="display:none;">
@@ -811,6 +824,7 @@
         <span>🔍</span>
         <input id="globalSearch" placeholder="ابحث عن لاعب...">
       </div>
+      <button type="button" id="guestLoginBtn" class="guest-login-btn">🔐 تسجيل الدخول</button>
       <div class="acct-menu-wrap">
         <div class="user-chip" id="userChipBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="حساب المستخدم">
           <div class="hex user-chip-avatar-wrap"><img id="loggedAvatar" src="assets/avatars/controller.png" alt="صورة اللاعب"></div>
@@ -1347,10 +1361,28 @@ async function handleRetryUsername(){
   }
 }
 
+function setGuestMode(isGuest){
+  document.body.classList.toggle("guest-mode", !!isGuest);
+  if(isGuest){
+    document.getElementById("loggedUsername").textContent = "لاعب";
+    closeAcctDropdown();
+  }
+}
+function openLoginScreen(){
+  document.body.classList.add("login-open");
+  document.body.style.overflow="hidden";
+  setTimeout(()=>document.getElementById("regEmail")?.focus(),80);
+}
+function closeLoginScreen(){
+  document.body.classList.remove("login-open");
+  document.body.style.overflow="";
+  showMsg("");
+}
 function enterDashboard(username){
   showMsg("");
-  document.getElementById("loggedUsername").textContent = username;
-  document.getElementById("authToggle").checked = true;
+  setGuestMode(false);
+  closeLoginScreen();
+  document.getElementById("loggedUsername").textContent = username || "لاعب";
   loadDashboard();
 }
 
@@ -1360,6 +1392,8 @@ async function handleLogout(){
   verifiedUserId = null;
   updateAdminMenu(null);
   localStorage.removeItem(PENDING_KEY);
+  setGuestMode(true);
+  closeLoginScreen();
   setStep(1);
   document.getElementById("regUsername").value = "";
   document.getElementById("regEmail").value = "";
@@ -1369,6 +1403,8 @@ async function handleLogout(){
   lastActiveTab = "tabOverview";
   resetVerifyForm(true);
   document.getElementById("verifyStatusWrap").style.display = "none";
+  document.getElementById("tabOverview").checked = true;
+  await loadDashboard();
 }
 
 // اكتشاف أخطاء Magic Link الظاهرة في رابط الصفحة (رابط منتهي الصلاحية أو غير صالح)
@@ -1396,21 +1432,35 @@ if(sb){
   sb.auth.getSession().then(({ data }) => {
     if(data && data.session && data.session.user){
       verifiedUserId = data.session.user.id;
+      setGuestMode(false);
       updateAdminMenu(data.session.user);
+      findOrCreatePlayer(data.session.user.id);
+      setTimeout(loadCurrentPlayerAppearance, 350);
+    }else{
+      setGuestMode(true);
+      loadDashboard();
     }
   });
 
   sb.auth.onAuthStateChange((event, session) => {
     if(session && session.user){
       verifiedUserId = session.user.id;
+      setGuestMode(false);
+      closeLoginScreen();
       updateAdminMenu(session.user);
-      findOrCreatePlayer(session.user.id);
+      if(event !== 'INITIAL_SESSION') findOrCreatePlayer(session.user.id);
       setTimeout(loadCurrentPlayerAppearance, 350);
     }else{
+      verifiedUserId = null;
+      setGuestMode(true);
       updateAdminMenu(null);
+      loadDashboard();
     }
   });
 }
+
+// الوضع الافتراضي للزائر: الموقع قابل للتصفح بالكامل، بينما الحساب والعمليات التي تغيّر البيانات تتطلب جلسة.
+if(!sb){ setGuestMode(true); }
 
 let playersCache = [];
 
@@ -2026,6 +2076,7 @@ function updateLoggedUserAppearance(){
   img.src=getCompositeSrc(p.avatar_key||'starter',p.frame_key||'classic',p.avatar_url);
 }
 function openAppearancePage(){
+  if(!verifiedUserId){ openLoginScreen(); return; }
   closeAcctDropdown(); closeMobileMenu();
   const current=getCurrentTabId(); if(current!=='tabAppearance') lastActiveTab=current;
   document.getElementById('tabAppearance').checked=true;
@@ -2071,12 +2122,14 @@ function updateAdminMenu(user){
 }
 
 function openAdminPage(){
+  if(!verifiedUserId){ openLoginScreen(); return; }
   closeAcctDropdown();
   closeMobileMenu();
   window.location.href = "admin.html";
 }
 
 function openVerifyPage(){
+  if(!verifiedUserId){ openLoginScreen(); return; }
   closeAcctDropdown();
   closeMobileMenu();
   if(!verifiedUserId){
@@ -2118,6 +2171,15 @@ try{
     if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openAdminPage(); }
   });
 
+  document.getElementById("guestLoginBtn")?.addEventListener("click", openLoginScreen);
+  document.getElementById("loginCloseBtn")?.addEventListener("click", closeLoginScreen);
+  document.getElementById("login-screen")?.addEventListener("click", function(e){
+    if(e.target === this) closeLoginScreen();
+  });
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && document.body.classList.contains("login-open")) closeLoginScreen();
+  });
+
   document.getElementById("appearanceBackBtn").addEventListener("click", function(){
     const target = document.getElementById(lastActiveTab) ? lastActiveTab : "tabOverview";
     document.getElementById(target).checked = true;
@@ -2155,7 +2217,7 @@ function resetPlayerUpdateForm(){
   playerUpdateBusy=false;
 }
 function openPlayerUpdateModal(){
-  if(!verifiedUserId){alert('يجب تسجيل الدخول أولاً.');return;}
+  if(!verifiedUserId){openLoginScreen();return;}
   resetPlayerUpdateForm(); document.getElementById('playerUpdateOverlay')?.classList.add('show'); document.body.style.overflow='hidden';
 }
 function closePlayerUpdateModal(){
