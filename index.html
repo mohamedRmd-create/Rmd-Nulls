@@ -802,11 +802,8 @@
     width:100%;
     max-width:100%;
     padding:16px 12px 44px;
-    overflow-x:hidden;
-    overflow-y:visible;
-    touch-action:pan-y;
-    -webkit-overflow-scrolling:touch;
-}
+    overflow-x:hidden;}
+ 
     .page-head{width:100%;max-width:100%;}
     .page-head h2{font-size:clamp(18px,5.5vw,22px);line-height:1.35;}
     .stats-row{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
@@ -2951,43 +2948,5 @@ async function submitVerificationRequest(){
 
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
 </body>
-  <style>
-/* ===== إصلاح السحب باللمس على الهاتف ===== */
 
-html {
-    width: 100%;
-    min-height: 100%;
-    height: auto !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-}
-
-body {
-    width: 100%;
-    min-height: 100vh;
-    height: auto !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-
-    /* السماح للمتصفح بالتعامل مع السحب الطبيعي */
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch !important;
-}
-
-/* لا تجعل أي حاوية رئيسية تمسك بالسكرول */
-#app,
-.main-col,
-main.content {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    touch-action: pan-y !important;
-}
-
-/* البانر يبقى طبيعيًا ولا يمنع لمس الصفحة */
-.topbar {
-    touch-action: pan-y !important;
-}
-</style>
 </html>
