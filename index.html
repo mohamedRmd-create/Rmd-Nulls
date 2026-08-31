@@ -975,6 +975,57 @@
   }
 
 </style>
+
+<style id="hard-scroll-fix">
+/* HARD SCROLL FIX: use the browser document as the only page scroll container. */
+html {
+  width:100% !important;
+  min-height:100% !important;
+  height:auto !important;
+  overflow-x:hidden !important;
+  overflow-y:scroll !important;
+  -webkit-overflow-scrolling:touch !important;
+  touch-action:auto !important;
+}
+body {
+  width:100% !important;
+  min-height:100vh !important;
+  min-height:100dvh !important;
+  height:auto !important;
+  overflow-x:hidden !important;
+  overflow-y:visible !important;
+  overscroll-behavior-y:auto !important;
+  touch-action:auto !important;
+}
+#app {
+  display:flex !important;
+  width:100% !important;
+  max-width:none !important;
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+.main-col {
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+}
+main.content {
+  height:auto !important;
+  min-height:0 !important;
+  overflow:visible !important;
+  touch-action:auto !important;
+}
+.topbar {
+  flex:0 0 auto !important;
+}
+@media (max-width:640px) {
+  #app { display:block !important; }
+  .main-col { display:block !important; }
+  main.content { display:block !important; overflow:visible !important; }
+  .topbar { position:sticky !important; top:0 !important; }
+}
+</style>
 </head>
 <body>
 
@@ -2989,5 +3040,22 @@ async function submitVerificationRequest(){
   });
 </script>
 
+
+<script id="scroll-reset-fix">
+(function(){
+  function unlockPageScroll(){
+    const modalOpen = document.querySelector('.player-update-overlay.show, #clanModalOverlay.open, #badgeDrawerOverlay.open, body.login-open #login-screen');
+    if (!modalOpen) {
+      document.documentElement.style.overflowY = 'scroll';
+      document.body.style.overflowY = 'visible';
+      document.body.style.overflowX = 'hidden';
+    }
+  }
+  window.addEventListener('pageshow', unlockPageScroll);
+  window.addEventListener('load', unlockPageScroll);
+  document.addEventListener('visibilitychange', unlockPageScroll);
+  setTimeout(unlockPageScroll, 250);
+})();
+</script>
 </body>
 </html>
