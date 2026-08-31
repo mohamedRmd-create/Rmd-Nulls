@@ -910,6 +910,70 @@
     }
   }
 
+
+  /* ==========================================================
+     FINAL SCROLL + PODIUM VISIBILITY FIX
+     Keep the document itself as the single scroll container on
+     desktop and mobile. This avoids nested-scroll/wheel/touch
+     problems while keeping the artwork banner pinned at top.
+     ========================================================== */
+  html, body{
+    height:auto !important;
+    min-height:100% !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y;
+  }
+  body{ position:relative !important; }
+  #app{ height:auto !important; min-height:100dvh !important; overflow:visible !important; }
+  .main-col{ height:auto !important; min-height:100dvh !important; overflow:visible !important; }
+  main.content{
+    height:auto !important;
+    min-height:0 !important;
+    overflow:visible !important;
+    -webkit-overflow-scrolling:auto !important;
+    touch-action:pan-y;
+  }
+  .topbar{
+    position:sticky !important;
+    top:0 !important;
+    z-index:30 !important;
+    flex-shrink:0 !important;
+  }
+  @media(max-width:640px){
+    .topbar{
+      position:sticky !important;
+      top:0 !important;
+      height:112px !important;
+      min-height:112px !important;
+    }
+    .main-col{min-height:100dvh !important;}
+  }
+
+  /* Make the three ranking identity panels easier to read while
+     retaining the artwork behind them. */
+  .podium .p-slot.p1{
+    background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(255,244,196,.82)) !important;
+    border:1px solid rgba(255,255,255,.72);
+  }
+  .podium .p-slot.p2{
+    background:linear-gradient(145deg,rgba(255,255,255,.90),rgba(238,241,252,.84)) !important;
+    border:1px solid rgba(255,255,255,.72);
+  }
+  .podium .p-slot.p3{
+    background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(255,236,222,.82)) !important;
+    border:1px solid rgba(255,255,255,.72);
+  }
+  .podium .p-name,
+  .podium .p-clan{
+    text-shadow:0 1px 2px rgba(255,255,255,.95);
+  }
+  .podium .p-bar{
+    align-self:stretch;
+    min-height:66px;
+  }
+
 </style>
 </head>
 <body>
@@ -2914,5 +2978,16 @@ async function submitVerificationRequest(){
 </script>
 
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
+
+<script>
+  // Safety net: if a previous modal/session left body overflow locked,
+  // restore normal page scrolling whenever the page becomes visible again.
+  window.addEventListener('pageshow', function(){
+    if (!document.querySelector('.player-update-overlay.show, #clanModalOverlay.open, #badgeDrawerOverlay.open, #login-screen')) {
+      document.body.style.overflow = '';
+    }
+  });
+</script>
+
 </body>
 </html>
