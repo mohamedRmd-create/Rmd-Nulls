@@ -2940,7 +2940,45 @@ async function submitVerificationRequest(){
   }
 }
 </script>
+<style>
+/* ===== إصلاح السحب باللمس على الهاتف ===== */
 
+html {
+    width: 100%;
+    min-height: 100%;
+    height: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    height: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    /* السماح للمتصفح بالتعامل مع السحب الطبيعي */
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch !important;
+}
+
+/* لا تجعل أي حاوية رئيسية تمسك بالسكرول */
+#app,
+.main-col,
+main.content {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    touch-action: pan-y !important;
+}
+
+/* البانر يبقى طبيعيًا ولا يمنع لمس الصفحة */
+.topbar {
+    touch-action: pan-y !important;
+}
+</style>
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
 </body>
 </html>
