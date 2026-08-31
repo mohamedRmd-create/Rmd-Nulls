@@ -839,7 +839,6 @@
     width:100% !important;
     min-width:0 !important;
     overflow-x:hidden !important;
-    overscroll-behavior-y:none;
   }
   #app{
     margin:0 !important;
@@ -856,11 +855,17 @@
   }
   .topbar{
     margin:0 !important;
-    position:relative !important;
-    top:0 !important;
   }
   .content{
     margin:0 !important;
+  }
+
+  /* منع الارتداد الزائد عند السحب لأعلى/لأسفل على الهاتف فقط (Pull-to-refresh)،
+     بدون قفل التمرير نفسه — كانت النسخة السابقة تطبّقها على html و body معًا
+     على كل المقاسات، وهذا ما كان يمنع التمرير بعجلة الماوس على اللابتوب
+     وباللمس على الهاتف. */
+  @media(max-width:640px){
+    body{ overscroll-behavior-y:contain; }
   }
 
   /* The old overview-artwork mobile rules are intentionally disabled;
