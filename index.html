@@ -119,9 +119,9 @@
   .topbar{
     display:flex; align-items:center; justify-content:flex-end; gap:16px;
     min-height:150px; padding:18px 28px;
-    position:sticky; top:0; z-index:30; 
+    position:sticky; top:0; z-index:30; overflow:hidden;
     background:
-      linear-gradient(to bottom, rgba(20,25,55,.10) 0%, rgba(20,25,55,.04) 38%, rgba(246, 243, 255, 0) 100%),
+      linear-gradient(to bottom, rgba(20,25,55,.10) 0%, rgba(20,25,55,.04) 38%, rgba(246,243,255,.82) 100%),
       url('assets/site-backgrounds/global-banner.png') center center / cover no-repeat;
     border-bottom:1px solid rgba(216,207,241,.9);
     box-shadow:0 7px 24px rgba(36,23,72,.08);
@@ -798,12 +798,7 @@
     .search-box{flex:1 1 auto;width:auto;min-width:0;max-width:none;}
     .guest-login-btn{flex:0 0 auto;padding:9px 11px;font-size:11px;white-space:nowrap;}
     .acct-menu-wrap{flex:0 0 auto;min-width:0;}
-   main.content{
-    width:100%;
-    max-width:100%;
-    padding:16px 12px 44px;
-    overflow-x:hidden;}
- 
+    main.content{width:100%;max-width:100%;padding:16px 12px 44px;overflow-x:hidden;}
     .page-head{width:100%;max-width:100%;}
     .page-head h2{font-size:clamp(18px,5.5vw,22px);line-height:1.35;}
     .stats-row{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
@@ -848,11 +843,24 @@
      Keeps the application anchored to the top of the visual
      viewport and prevents nested scrolling / phantom blank space.
      ========================================================== */
+  /* ملاحظة: overflow-x:hidden كانت موجودة أصلًا على body فقط (منذ التصميم
+     الأساسي)، وهذا صحيح لأن المتصفح يُصعِّد (propagate) خاصية overflow من
+     body تلقائيًا لتصبح هي متحكم التمرير الفعلي للصفحة (root scroller) طالما
+     أن html نفسه لا يملك قيمة overflow صريحة. لكن هذا القسم أضاف overflow-x:hidden
+     على html أيضًا، فألغى هذا التصعيد — فأصبح body حاوية تمرير منفصلة متداخلة
+     داخل html بدل أن يكون هو المتحكم الوحيد. وهذا بالضبط ما يفسّر أن التمرير
+     بإصبعين (أو أثناء التكبير/Zoom) يعمل — لأنه يحرّك الحاوية المتداخلة (body) —
+     بينما إصبع واحد لا يحرّك شيئًا لأن Safari/iOS يبحث عن حركة على html (الجذر)
+     تحديدًا لسحب إصبع واحد. الحل: نُبقي overflow-x:hidden على body فقط كما
+     كانت في الأصل، ولا نضعها على html كي يعمل التصعيد الطبيعي ويعود html وbody
+     متحكمًا واحدًا للتمرير. */
   html, body{
     margin:0 !important;
     padding:0 !important;
     width:100% !important;
     min-width:0 !important;
+  }
+  body{
     overflow-x:hidden !important;
   }
   #app{
@@ -2948,5 +2956,4 @@ async function submitVerificationRequest(){
 
 <script>document.addEventListener('DOMContentLoaded',()=>startPlayerRefreshCountdown());</script>
 </body>
-
 </html>
